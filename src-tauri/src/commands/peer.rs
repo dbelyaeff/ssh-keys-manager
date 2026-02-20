@@ -52,21 +52,21 @@ pub struct IncomingTransfer {
 }
 
 pub struct PeerState {
-    pub peers: Mutex<Vec<Peer>>,
+    pub peers: Arc<Mutex<Vec<Peer>>>,
     pub daemon: Mutex<Option<ServiceDaemon>>,
     pub tcp_port: Mutex<u16>,
-    pub pending_pins: Mutex<HashMap<String, String>>, // connection_id -> pin
+    pub my_ip: Mutex<String>,
     pub incoming: Arc<Mutex<Vec<IncomingTransfer>>>,
-    pub received_data: Arc<Mutex<HashMap<String, PeerTransferData>>>, // connection_id -> data
+    pub received_data: Arc<Mutex<HashMap<String, PeerTransferData>>>,
 }
 
 impl PeerState {
     pub fn new() -> Self {
         Self {
-            peers: Mutex::new(Vec::new()),
+            peers: Arc::new(Mutex::new(Vec::new())),
             daemon: Mutex::new(None),
             tcp_port: Mutex::new(0),
-            pending_pins: Mutex::new(HashMap::new()),
+            my_ip: Mutex::new(String::new()),
             incoming: Arc::new(Mutex::new(Vec::new())),
             received_data: Arc::new(Mutex::new(HashMap::new())),
         }
@@ -81,20 +81,27 @@ fn get_hostname() -> String {
 
 #[tauri::command]
 pub async fn start_peer_service(state: State<'_, PeerState>) -> Result<u16, String> {
+    // Stop existing service if running
+    if let Some(daemon) = state.daemon.lock().unwrap().take() {
+        daemon.shutdown().ok();
+    }
+
+    // Detect local IP
+    let my_ip = local_ip_address::local_ip()
+        .map(|ip| ip.to_string())
+        .unwrap_or_else(|_| "127.0.0.1".to_string());
+    *state.my_ip.lock().unwrap() = my_ip.clone();
+
     // Start TCP listener on random port
     let listener = TcpListener::bind("0.0.0.0:0").map_err(|e| e.to_string())?;
     let port = listener.local_addr().map_err(|e| e.to_string())?.port();
     *state.tcp_port.lock().unwrap() = port;
 
-    // Register mDNS service
-    let daemon = ServiceDaemon::new().map_err(|e| e.to_string())?;
+    // Create ONE daemon for both registration and browsing
+    let daemon = ServiceDaemon::new().map_err(|e| format!("mDNS daemon error: {e}"))?;
+
+    // Register our service
     let host_name = get_hostname();
-    let instance = format!("{}._sshmanager._tcp.local.", host_name);
-
-    let my_ip = local_ip_address::local_ip()
-        .map(|ip| ip.to_string())
-        .unwrap_or_else(|_| "127.0.0.1".to_string());
-
     let service = ServiceInfo::new(
         SERVICE_TYPE,
         &host_name,
@@ -105,16 +112,70 @@ pub async fn start_peer_service(state: State<'_, PeerState>) -> Result<u16, Stri
     )
     .map_err(|e| format!("ServiceInfo error: {e}"))?;
 
-    daemon.register(service).map_err(|e| e.to_string())?;
+    daemon
+        .register(service)
+        .map_err(|e| format!("Register error: {e}"))?;
+
+    // Start browsing on the SAME daemon
+    let receiver = daemon
+        .browse(SERVICE_TYPE)
+        .map_err(|e| format!("Browse error: {e}"))?;
+
+    // Store daemon
     *state.daemon.lock().unwrap() = Some(daemon);
 
-    // Spawn TCP accept loop in background
+    // Spawn background thread: continuous mDNS browsing
+    let peers_ref = state.peers.clone();
+    let my_ip_for_browse = my_ip.clone();
+    std::thread::spawn(move || {
+        loop {
+            match receiver.recv_timeout(Duration::from_millis(500)) {
+                Ok(ServiceEvent::ServiceResolved(info)) => {
+                    let ip = info
+                        .get_addresses()
+                        .iter()
+                        .find(|a| a.is_ipv4())
+                        .or_else(|| info.get_addresses().iter().next())
+                        .map(|a| a.to_string())
+                        .unwrap_or_default();
+
+                    // Skip self
+                    if ip == my_ip_for_browse || ip.is_empty() {
+                        continue;
+                    }
+
+                    let peer = Peer {
+                        name: info.get_hostname().trim_end_matches('.').to_string(),
+                        ip: ip.clone(),
+                        port: info.get_port(),
+                        id: format!("{}:{}", ip, info.get_port()),
+                    };
+
+                    let mut peers = peers_ref.lock().unwrap();
+                    if !peers.iter().any(|p| p.id == peer.id) {
+                        peers.push(peer);
+                    }
+                }
+                Ok(ServiceEvent::ServiceRemoved(_, fullname)) => {
+                    // Remove peer when service goes away
+                    let mut peers = peers_ref.lock().unwrap();
+                    peers.retain(|p| !fullname.contains(&p.name));
+                }
+                Ok(_) => {}
+                Err(flume::RecvTimeoutError::Disconnected) => {
+                    // Daemon was shut down, exit the loop
+                    break;
+                }
+                Err(_) => {} // Timeout, continue
+            }
+        }
+    });
+
+    // Spawn TCP accept loop
     let incoming_ref = state.incoming.clone();
     let received_ref = state.received_data.clone();
     std::thread::spawn(move || {
-        listener
-            .set_nonblocking(false)
-            .ok();
+        listener.set_nonblocking(false).ok();
         for stream in listener.incoming() {
             if let Ok(mut stream) = stream {
                 stream
@@ -220,49 +281,20 @@ fn handle_incoming_connection(
 
 #[tauri::command]
 pub async fn discover_peers(state: State<'_, PeerState>) -> Result<Vec<Peer>, String> {
-    let daemon = ServiceDaemon::new().map_err(|e| e.to_string())?;
-    let receiver = daemon.browse(SERVICE_TYPE).map_err(|e| e.to_string())?;
-
-    let mut peers = Vec::new();
-    let my_ip = local_ip_address::local_ip()
-        .map(|ip| ip.to_string())
-        .unwrap_or_else(|_| "127.0.0.1".to_string());
-
-    // Collect peers for 2 seconds
-    let deadline = std::time::Instant::now() + Duration::from_secs(2);
-    while std::time::Instant::now() < deadline {
-        match receiver.recv_timeout(Duration::from_millis(200)) {
-            Ok(ServiceEvent::ServiceResolved(info)) => {
-                let ip = info
-                    .get_addresses()
-                    .iter()
-                    .next()
-                    .map(|a| a.to_string())
-                    .unwrap_or_default();
-
-                // Skip self
-                if ip == my_ip {
-                    continue;
-                }
-
-                let peer = Peer {
-                    name: info.get_hostname().trim_end_matches('.').to_string(),
-                    ip: ip.clone(),
-                    port: info.get_port(),
-                    id: format!("{}:{}", ip, info.get_port()),
-                };
-
-                if !peers.iter().any(|p: &Peer| p.id == peer.id) {
-                    peers.push(peer);
-                }
-            }
-            Ok(_) => {}
-            Err(_) => {}
-        }
+    // Peers are now collected continuously by the background mDNS browse thread.
+    // This command just returns whatever has been discovered so far.
+    // To force a re-query, we can trigger the daemon to re-browse.
+    
+    // If daemon is running, trigger a new query burst
+    if let Some(ref daemon) = *state.daemon.lock().unwrap() {
+        // Re-browse to trigger fresh queries
+        let _ = daemon.browse(SERVICE_TYPE);
     }
-
-    daemon.shutdown().ok();
-    *state.peers.lock().unwrap() = peers.clone();
+    
+    // Wait a bit for responses to arrive
+    tokio::time::sleep(Duration::from_secs(3)).await;
+    
+    let peers = state.peers.lock().unwrap().clone();
     Ok(peers)
 }
 
@@ -288,7 +320,9 @@ pub async fn initiate_transfer(
     let addr = format!("{}:{}", parts[0], parts[1]);
 
     let mut stream = TcpStream::connect_timeout(
-        &addr.parse().map_err(|e: std::net::AddrParseError| e.to_string())?,
+        &addr
+            .parse()
+            .map_err(|e: std::net::AddrParseError| e.to_string())?,
         Duration::from_secs(5),
     )
     .map_err(|e| format!("Connection failed: {e}"))?;
@@ -344,7 +378,6 @@ pub async fn respond_to_transfer(
     incoming.retain(|t| t.connection_id != connection_id);
 
     if !accept {
-        // Just remove it
         return Ok(());
     }
 
@@ -365,7 +398,9 @@ pub async fn send_peer_data(
     let addr = format!("{}:{}", parts[0], parts[1]);
 
     let mut stream = TcpStream::connect_timeout(
-        &addr.parse().map_err(|e: std::net::AddrParseError| e.to_string())?,
+        &addr
+            .parse()
+            .map_err(|e: std::net::AddrParseError| e.to_string())?,
         Duration::from_secs(5),
     )
     .map_err(|e| format!("Connection failed: {e}"))?;
@@ -443,15 +478,15 @@ pub async fn apply_received_data(
                 srv.host, srv.hostname, srv.user, srv.port, srv.identity_file
             );
 
-            // Check if host exists
             if config_content.contains(&format!("Host {}", srv.host)) {
                 if overwrite {
-                    // Simple replacement — remove old block and append new
                     let lines: Vec<&str> = config_content.lines().collect();
                     let mut new_lines: Vec<&str> = Vec::new();
                     let mut skip = false;
                     for line in &lines {
-                        if line.trim().starts_with("Host ") && line.trim() == format!("Host {}", srv.host) {
+                        if line.trim().starts_with("Host ")
+                            && line.trim() == format!("Host {}", srv.host)
+                        {
                             skip = true;
                             continue;
                         }
@@ -481,5 +516,7 @@ pub async fn stop_peer_service(state: State<'_, PeerState>) -> Result<(), String
     if let Some(daemon) = state.daemon.lock().unwrap().take() {
         daemon.shutdown().map_err(|e| e.to_string())?;
     }
+    // Clear peers
+    state.peers.lock().unwrap().clear();
     Ok(())
 }
