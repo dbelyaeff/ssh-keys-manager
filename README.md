@@ -45,6 +45,14 @@
 - **Password prompt** — automatically detects encrypted archives and asks for the password
 - **Overwrite control** — choose to overwrite existing keys/servers or skip duplicates
 
+### 📡 P2P Local Network Transfer
+- **mDNS discovery** — automatically finds other SSH Keys Manager instances on the local network
+- **TCP data transfer** with length-prefixed JSON protocol
+- **6-digit PIN** authentication for secure device pairing
+- **Send dialog** — select keys and servers to transfer, with PIN confirmation
+- **Incoming transfers** — accept or reject with data preview (key 🔑 and server 🖥 badges)
+- **Apply received data** — imported keys get correct permissions (`600`/`644`)
+
 ### ⚙️ Settings
 - **Theme switching** — System / Light / Dark with quick-access icons in the header bar (Monitor / Sun / Moon)
 - **Language selection** — Russian 🇷🇺 and English 🇬🇧 with automatic system language detection
@@ -91,6 +99,7 @@
 | [AES-GCM](https://crates.io/crates/aes-gcm) | AES-256-GCM encryption |
 | [Argon2](https://crates.io/crates/argon2) | Password-based key derivation |
 | [tar](https://crates.io/crates/tar) + [flate2](https://crates.io/crates/flate2) | Archive creation/extraction |
+| [mdns-sd](https://crates.io/crates/mdns-sd) | mDNS/DNS-SD for P2P discovery |
 
 ---
 
@@ -175,7 +184,8 @@ ssh-keys-manager/
 │   │   │   ├── keys.rs           # SSH key operations
 │   │   │   ├── servers.rs        # SSH config parsing & editing
 │   │   │   ├── connect.rs        # Terminal launch & ssh-copy-id
-│   │   │   └── archive.rs        # Export/Import with encryption
+│   │   │   ├── archive.rs        # Export/Import with encryption
+│   │   │   └── peer.rs           # P2P mDNS discovery & TCP transfer
 │   │   ├── lib.rs                # Tauri plugin & handler registration
 │   │   └── main.rs               # App entry point
 │   ├── icons/                    # App icons (all sizes + .icns/.ico)
@@ -193,7 +203,13 @@ ssh-keys-manager/
 
 - **Encryption**: Archives are encrypted with AES-256-GCM. The encryption key is derived from the user's password using Argon2id with a random 16-byte salt.
 - **Memory safety**: Sensitive data (passwords, keys) is handled in Rust with the `zeroize` crate for secure memory cleanup.
-- **No network access**: The app only communicates with local SSH tools (`ssh`, `ssh-keygen`, `ssh-copy-id`). No data is sent to external servers.
+- **No external network access**: The app only communicates with local SSH tools (`ssh`, `ssh-keygen`, `ssh-copy-id`) and local network peers (mDNS + TCP). No data is sent to external servers.
+
+---
+
+## 📋 Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for a detailed list of changes in each version.
 
 ---
 
