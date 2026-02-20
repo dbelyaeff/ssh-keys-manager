@@ -1,0 +1,71 @@
+name: Build & Release (macOS)
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Build Tauri (Apple Silicon)
+        run: npm run tauri build -- --target aarch64-apple-darwin
+
+      - name: Build Tauri (Intel)
+        run: npm run tauri build -- --target x86_64-apple-darwin
+
+      - name: List artifacts
+        run: |
+          echo "=== Apple Silicon ==="
+          ls -la src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/ || true
+          echo "=== Intel ==="
+          ls -la src-tauri/target/x86_64-apple-darwin/release/bundle/dmg/ || true
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: SSH Keys Manager ${{ github.ref_name }}
+          body: |
+            ## SSH Keys Manager ${{ github.ref_name }}
+            
+            ### Downloads
+            - **Apple Silicon (M1/M2/M3/M4)**: `SSH-Keys-Manager_*_aarch64.dmg`
+            - **Intel**: `SSH-Keys-Manager_*_x64.dmg`
+            
+            ### What's included
+            - SSH key management (view, edit, generate, delete)
+            - Server management with auto-connection detection
+            - Encrypted export/import (.sshpack) with AES-256-GCM + Argon2
+            - P2P transfer over local network (mDNS + TCP)
+            - Dark/Light theme, Russian & English languages
+          files: |
+            src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg
+            src-tauri/target/x86_64-apple-darwin/release/bundle/dmg/*.dmg
+          draft: false
+          prerelease: false

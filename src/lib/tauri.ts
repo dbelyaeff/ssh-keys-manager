@@ -104,13 +104,44 @@ export const applyImport = (
   });
 
 // Peers
+export interface IncomingTransfer {
+  from_name: string;
+  from_ip: string;
+  pin: string;
+  connection_id: string;
+  keys: string[];
+  servers: string[];
+}
+
+export interface KeyTransfer {
+  name: string;
+  private_content: string;
+  public_content: string;
+}
+
+export interface ServerTransfer {
+  host: string;
+  hostname: string;
+  user: string;
+  port: number;
+  identity_file: string;
+}
+
+export const startPeerService = () => invoke<number>("start_peer_service");
+export const stopPeerService = () => invoke<void>("stop_peer_service");
+export const discoverPeers = () => invoke<Peer[]>("discover_peers");
 export const getPeers = () => invoke<Peer[]>("get_peers");
-export const initiateTransfer = (peerId: string) =>
-  invoke<string>("initiate_transfer", { peerId });
-export const acceptTransfer = (connectionId: string, accept: boolean) =>
-  invoke<void>("accept_transfer", { connectionId, accept });
-export const sendData = (
-  connectionId: string,
-  keys: string[],
-  servers: string[]
-) => invoke<void>("send_data", { connectionId, keys, servers });
+export const initiateTransfer = (peerId: string, keys: string[], servers: string[]) =>
+  invoke<string>("initiate_transfer", { peerId, keys, servers });
+export const getIncomingTransfers = () =>
+  invoke<IncomingTransfer[]>("get_incoming_transfers");
+export const respondToTransfer = (connectionId: string, accept: boolean) =>
+  invoke<void>("respond_to_transfer", { connectionId, accept });
+export const sendPeerData = (
+  peerId: string,
+  keys: KeyTransfer[],
+  servers: ServerTransfer[],
+  connectionId: string
+) => invoke<void>("send_peer_data", { peerId, keys, servers, connectionId });
+export const applyReceivedData = (connectionId: string, overwrite: boolean) =>
+  invoke<void>("apply_received_data", { connectionId, overwrite });

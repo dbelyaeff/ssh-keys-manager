@@ -4,6 +4,7 @@ use commands::keys::*;
 use commands::servers::*;
 use commands::connect::*;
 use commands::archive::*;
+use commands::peer::*;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -11,6 +12,7 @@ pub fn run() {
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_shell::init())
+        .manage(PeerState::new())
         .invoke_handler(tauri::generate_handler![
             scan_ssh_keys,
             read_key_content,
@@ -23,10 +25,19 @@ pub fn run() {
             connect_to_server,
             install_key_to_server,
             remove_known_host,
+            check_server_connection,
             export_archive,
             import_archive,
             apply_import,
-            check_server_connection,
+            start_peer_service,
+            discover_peers,
+            get_peers,
+            initiate_transfer,
+            get_incoming_transfers,
+            respond_to_transfer,
+            send_peer_data,
+            apply_received_data,
+            stop_peer_service,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

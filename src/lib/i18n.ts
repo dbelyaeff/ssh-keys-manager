@@ -31,6 +31,12 @@ export const translations = {
             language: "Язык интерфейса",
             langRu: "Русский",
             langEn: "English",
+            about: "О программе",
+            version: "Версия",
+            techStack: "Технологии",
+            author: "Автор",
+            authorName: "Д.П. Беляев",
+            license: "Лицензия",
         }
     },
     en: {
@@ -63,6 +69,12 @@ export const translations = {
             language: "Interface Language",
             langRu: "Русский",
             langEn: "English",
+            about: "About",
+            version: "Version",
+            techStack: "Technologies",
+            author: "Author",
+            authorName: "D.P. Belyaev",
+            license: "License",
         }
     }
 };
