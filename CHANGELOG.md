@@ -5,6 +5,27 @@ All notable changes to SSH Keys Manager will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2026-02-21
+
+### Added
+- P2P Local Network Transfer UI in Export/Import tab
+  - mDNS peer discovery with device list
+  - Send dialog with key/server selection and PIN display
+  - Incoming transfer cards with accept/reject and data preview badges
+  - Full i18n support (RU/EN) for all P2P strings
+- "About" section in Settings (tech stack badges, author, license, GitHub link)
+- CHANGELOG.md
+
+### Fixed
+- App icon now has real PNG alpha transparency (chroma-keyed, no fake checker)
+- Icon fills entire canvas edge-to-edge without padding
+- All icon sizes regenerated (png, icns, ico)
+- Bundle identifier fixed to `com.dbelyaeff.sshkeysmanager`
+
+### Changed
+- Updated README.md and README.ru.md with P2P documentation
+- Security section updated to reflect local network P2P access
+
 ## [1.0.0] - 2026-02-21
 
 ### Added
@@ -74,4 +95,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Modal dialogs for all creation flows
 - Full dark mode / light mode support
 
+[1.0.1]: https://github.com/dbelyaeff/ssh-keys-manager/releases/tag/v1.0.1
 [1.0.0]: https://github.com/dbelyaeff/ssh-keys-manager/releases/tag/v1.0.0

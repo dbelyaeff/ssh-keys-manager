@@ -77,7 +77,7 @@ export function SettingsTab() {
                                 <img src="/src-tauri/icons/icon.png" alt="Logo" className="w-12 h-12 rounded-lg" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                                 <div>
                                     <h3 className="font-semibold text-base">SSH Keys Manager</h3>
-                                    <p className="text-xs text-muted-foreground">{t(language, "settingsTab.version")} 1.0.0</p>
+                                    <p className="text-xs text-muted-foreground">{t(language, "settingsTab.version")} 1.0.1</p>
                                 </div>
                             </div>
                             <div className="text-sm space-y-1.5">
