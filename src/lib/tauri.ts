@@ -72,8 +72,8 @@ export const deleteServer = (host: string) =>
   invoke<void>("delete_server", { host });
 
 // Connect
-export const connectToServer = (config: ServerConfig) =>
-  invoke<void>("connect_to_server", { config });
+export const connectToServer = (config: ServerConfig, terminal: string) =>
+  invoke<void>("connect_to_server", { config, terminal });
 export const installKeyToServer = (
   config: ServerConfig,
   password: string
@@ -82,6 +82,8 @@ export const removeKnownHost = (hostname: string) =>
   invoke<void>("remove_known_host", { hostname });
 export const checkServerConnection = (config: ServerConfig) =>
   invoke<boolean>("check_server_connection", { config });
+export const checkInstalledTerminals = () =>
+  invoke<string[]>("check_installed_terminals");
 
 // Archive
 export const exportArchive = (params: ExportParams) =>
@@ -132,7 +134,7 @@ export const stopPeerService = () => invoke<void>("stop_peer_service");
 export const discoverPeers = () => invoke<Peer[]>("discover_peers");
 export const getPeers = () => invoke<Peer[]>("get_peers");
 export const initiateTransfer = (peerId: string, keys: string[], servers: string[]) =>
-  invoke<string>("initiate_transfer", { peerId, keys, servers });
+  invoke<{ pin: string; connection_id: string }>("initiate_transfer", { peerId, keys, servers });
 export const getIncomingTransfers = () =>
   invoke<IncomingTransfer[]>("get_incoming_transfers");
 export const respondToTransfer = (connectionId: string, accept: boolean) =>

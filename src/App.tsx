@@ -6,6 +6,7 @@ import { KeysTab } from "@/components/keys/KeysTab";
 import { ServersTab } from "@/components/servers/ServersTab";
 import { ExportImportTab } from "@/components/export-import/ExportImportTab";
 import { SettingsTab } from "@/components/settings/SettingsTab";
+import { ExportDialog } from "@/components/export-import/ExportDialog";
 import { useUIStore } from "@/store/uiStore";
 import { useSettingsStore } from "@/store/settingsStore";
 import { t } from "@/lib/i18n";
@@ -83,6 +84,7 @@ export default function App() {
           {activeTab === "settings" && <SettingsTab />}
         </div>
       </div>
+      <ExportDialog />
       <Toaster richColors position="bottom-right" theme={theme} />
     </TooltipProvider>
   );

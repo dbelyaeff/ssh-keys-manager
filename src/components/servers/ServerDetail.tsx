@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useServersStore } from "@/store/serversStore";
 import { useKeysStore } from "@/store/keysStore";
+import { useSettingsStore } from "@/store/settingsStore";
 import { saveServer, deleteServer, connectToServer, installKeyToServer, removeKnownHost, checkServerConnection } from "@/lib/tauri";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,7 @@ import { ServerConfig } from "@/lib/tauri";
 export function ServerDetail() {
   const { servers, selectedServer, loadServers, selectServer } = useServersStore();
   const { keys, loadKeys } = useKeysStore();
+  const terminal = useSettingsStore((s) => s.terminal);
   const srv = servers.find((s) => s.host === selectedServer);
 
   const [form, setForm] = useState<ServerConfig>({ host: "", hostname: "", user: "root", port: 22, identity_file: "" });
@@ -111,7 +113,7 @@ export function ServerDetail() {
 
   const handleConnect = async () => {
     try {
-      await connectToServer(form);
+      await connectToServer(form, terminal);
       toast.success("Терминал открыт");
     } catch (e) {
       toast.error(`Ошибка подключения: ${e}`);
@@ -127,6 +129,7 @@ export function ServerDetail() {
       toast.success("Ключ успешно установлен");
       setInstallOpen(false);
       setPassword("");
+      setIsConnected(true);
     } catch (e: unknown) {
       toast.dismiss(id);
       const msg = String(e);
@@ -230,32 +233,32 @@ export function ServerDetail() {
       <Separator />
       <div className="flex justify-between px-6 py-3">
         <div className="flex gap-2">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="outline" size="sm" onClick={handleConnect} disabled={!form.hostname}>
+                <Terminal className={cn("h-3.5 w-3.5 mr-1.5", isConnected && !isChecking ? "text-green-500" : "")} />
+                Подключиться
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Открыть терминал с SSH-подключением</TooltipContent>
+          </Tooltip>
+
           {isChecking ? (
             <Button variant="outline" size="sm" disabled>
               <Terminal className="h-3.5 w-3.5 mr-1.5 animate-pulse" />
-              Проверка связи...
+              Проверка...
             </Button>
-          ) : isConnected ? (
+          ) : !isConnected && form.hostname && form.identity_file ? (
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="outline" size="sm" onClick={handleConnect} disabled={!form.hostname}>
-                  <Terminal className="h-3.5 w-3.5 mr-1.5 text-green-500" />
-                  Подключиться
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Открыть терминал с SSH-подключением</TooltipContent>
-            </Tooltip>
-          ) : (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="outline" size="sm" onClick={() => setInstallOpen(true)} disabled={!form.hostname || !form.identity_file}>
+                <Button variant="outline" size="sm" onClick={() => setInstallOpen(true)}>
                   <Upload className="h-3.5 w-3.5 mr-1.5 text-primary" />
                   Установить ключ
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Скопировать ключ на сервер (ssh-copy-id)</TooltipContent>
             </Tooltip>
-          )}
+          ) : null}
         </div>
         <div className="flex gap-2">
           <AlertDialog>

@@ -41,6 +41,12 @@ pub struct ServerTransfer {
     pub identity_file: String,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InitiateResponse {
+    pub pin: String,
+    pub connection_id: String,
+}
+
 #[derive(Debug, Clone, Serialize)]
 pub struct IncomingTransfer {
     pub from_name: String,
@@ -127,6 +133,7 @@ pub async fn start_peer_service(state: State<'_, PeerState>) -> Result<u16, Stri
     // Spawn background thread: continuous mDNS browsing
     let peers_ref = state.peers.clone();
     let my_ip_for_browse = my_ip.clone();
+    let my_port = port;
     std::thread::spawn(move || {
         loop {
             match receiver.recv_timeout(Duration::from_millis(500)) {
@@ -139,8 +146,8 @@ pub async fn start_peer_service(state: State<'_, PeerState>) -> Result<u16, Stri
                         .map(|a| a.to_string())
                         .unwrap_or_default();
 
-                    // Skip self
-                    if ip == my_ip_for_browse || ip.is_empty() {
+                    // Skip self: same IP AND same port, and skip localhost (127.0.0.1)
+                    if (ip == my_ip_for_browse && info.get_port() == my_port) || ip.is_empty() || ip == "127.0.0.1" {
                         continue;
                     }
 
@@ -308,7 +315,7 @@ pub async fn initiate_transfer(
     peer_id: String,
     keys: Vec<String>,
     servers: Vec<String>,
-) -> Result<String, String> {
+) -> Result<InitiateResponse, String> {
     // Generate 6-digit PIN
     let pin: String = format!("{:06}", rand::thread_rng().gen_range(0..999999u32));
 
@@ -358,7 +365,14 @@ pub async fn initiate_transfer(
         .read_exact(&mut resp_buf)
         .map_err(|e| e.to_string())?;
 
-    Ok(pin)
+    let resp_json: serde_json::Value = serde_json::from_slice(&resp_buf).map_err(|e| e.to_string())?;
+    let connection_id = resp_json
+        .get("connection_id")
+        .and_then(|v| v.as_str())
+        .ok_or("No connection_id in response")?
+        .to_string();
+
+    Ok(InitiateResponse { pin, connection_id })
 }
 
 #[tauri::command]

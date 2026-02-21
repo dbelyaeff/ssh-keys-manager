@@ -35,10 +35,10 @@
   - ✅ If the key is installed → shows **"Connect"** button (opens your default terminal)
   - 🔑 If no key-based access → shows **"Install Key"** button (runs `ssh-copy-id`)
 - **Fingerprint mismatch handling** — detects `REMOTE HOST IDENTIFICATION HAS CHANGED` and offers to remove the old fingerprint
-- **Terminal integration** — connects via `.command` files, opening your system's default terminal app
+- **Terminal integration** — connects securely, intelligently launching your installed default macOS terminal app (Terminal.app, iTerm, Warp)
 
 ### 📦 Export & Import
-- **Export** selected keys and server configs into a single encrypted archive
+- **Export** selected keys and server configs into a single encrypted archive via a convenient Modal Dialog without breaking your workflow
 - **AES-256-GCM** encryption with **Argon2** key derivation for maximum security
 - **Password confirmation** — requires typing the password twice during export
 - **Import with preview** — browse the archive contents before applying

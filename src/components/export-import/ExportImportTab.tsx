@@ -2,16 +2,17 @@ import { useState, useRef } from "react";
 import { useKeysStore } from "@/store/keysStore";
 import { useServersStore } from "@/store/serversStore";
 import { useSettingsStore } from "@/store/settingsStore";
-import {
-  exportArchive, importArchive, applyImport, ImportResult,
-  startPeerService, stopPeerService, discoverPeers,
-  initiateTransfer, sendPeerData, readKeyContent,
-  getIncomingTransfers, respondToTransfer, applyReceivedData,
-  Peer, IncomingTransfer,
-} from "@/lib/tauri";
+import { useUIStore } from "@/store/uiStore";
 import { t } from "@/lib/i18n";
 import { toast } from "sonner";
-import { open as openDialog, save as saveDialog } from "@tauri-apps/plugin-dialog";
+import {
+  importArchive, applyImport, type ImportResult,
+  startPeerService, stopPeerService, getPeers,
+  initiateTransfer, sendPeerData, readKeyContent,
+  getIncomingTransfers, respondToTransfer, applyReceivedData,
+  type Peer, type IncomingTransfer,
+} from "@/lib/tauri";
+import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,7 +25,7 @@ import {
 } from "@/components/ui/dialog";
 import {
   Download, Upload, ArchiveRestore, PackageOpen,
-  Wifi, WifiOff, Monitor, RefreshCw, Send, Loader2, CheckCircle2, AlertCircle,
+  Wifi, WifiOff, Monitor, Send, Loader2, CheckCircle2, AlertCircle,
 } from "lucide-react";
 
 export function ExportImportTab() {
@@ -33,13 +34,7 @@ export function ExportImportTab() {
   const { language } = useSettingsStore();
 
   // Export state
-  const [exportOpen, setExportOpen] = useState(false);
-  const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
-  const [selectedServers, setSelectedServers] = useState<string[]>([]);
-  const [exportPassword, setExportPassword] = useState("");
-  const [exportPasswordConfirm, setExportPasswordConfirm] = useState("");
-  const [exporting, setExporting] = useState(false);
-
+  const { openExportDialog } = useUIStore();
   // Import state
   const [importOpen, setImportOpen] = useState(false);
   const [importPath, setImportPath] = useState("");
@@ -54,7 +49,6 @@ export function ExportImportTab() {
   // P2P state
   const [p2pActive, setP2pActive] = useState(false);
   const [peers, setPeers] = useState<Peer[]>([]);
-  const [scanning, setScanning] = useState(false);
   const [sendOpen, setSendOpen] = useState(false);
   const [sendPeer, setSendPeer] = useState<Peer | null>(null);
   const [p2pSelKeys, setP2pSelKeys] = useState<string[]>([]);
@@ -64,48 +58,6 @@ export function ExportImportTab() {
   const [incoming, setIncoming] = useState<IncomingTransfer[]>([]);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const toggleKey = (name: string) =>
-    setSelectedKeys((prev) => prev.includes(name) ? prev.filter((k) => k !== name) : [...prev, name]);
-  const toggleServer = (host: string) =>
-    setSelectedServers((prev) => prev.includes(host) ? prev.filter((s) => s !== host) : [...prev, host]);
-
-  const handleExport = async () => {
-    if (exportPassword !== exportPasswordConfirm) {
-      toast.error("Пароли не совпадают");
-      return;
-    }
-    let destPath: string | null = null;
-    try {
-      destPath = await saveDialog({
-        filters: [{ name: "SSH Pack", extensions: ["sshpack"] }],
-        defaultPath: "ssh-keys.sshpack",
-      });
-    } catch (e) {
-      toast.error(`Ошибка открытия диалога: ${e}`);
-      return;
-    }
-    if (!destPath) return;
-    setExporting(true);
-    const id = toast.loading("Создаю архив...");
-    try {
-      await exportArchive({
-        keys: selectedKeys,
-        servers: selectedServers,
-        password: exportPassword || null,
-        dest_path: destPath,
-      });
-      toast.dismiss(id);
-      toast.success("Архив сохранён");
-      setExportOpen(false);
-      setExportPassword("");
-      setExportPasswordConfirm("");
-    } catch (e) {
-      toast.dismiss(id);
-      toast.error(`Ошибка экспорта: ${e}`);
-    } finally {
-      setExporting(false);
-    }
-  };
 
   const handlePickImport = async () => {
     let file: string | null | string[] = null;
@@ -174,15 +126,17 @@ export function ExportImportTab() {
       await startPeerService();
       setP2pActive(true);
       toast.success(t(language, "exportTab.p2pListening"));
-      // Start polling for incoming transfers
+      // Start polling for incoming transfers and peers
       pollRef.current = setInterval(async () => {
         try {
-          const transfers = await getIncomingTransfers();
+          const [transfers, foundPeers] = await Promise.all([
+            getIncomingTransfers(),
+            getPeers()
+          ]);
           setIncoming(transfers);
+          setPeers(foundPeers);
         } catch { /* ignore */ }
       }, 1500);
-      // Auto-discover
-      handleRefreshPeers();
     } catch (e) {
       toast.error(`P2P error: ${e}`);
     }
@@ -201,17 +155,7 @@ export function ExportImportTab() {
     }
   };
 
-  const handleRefreshPeers = async () => {
-    setScanning(true);
-    try {
-      const found = await discoverPeers();
-      setPeers(found);
-    } catch (e) {
-      toast.error(`Discovery error: ${e}`);
-    } finally {
-      setScanning(false);
-    }
-  };
+
 
   const handleOpenSend = (peer: Peer) => {
     setSendPeer(peer);
@@ -225,12 +169,12 @@ export function ExportImportTab() {
     if (!sendPeer) return;
     setSending(true);
     try {
-      const pin = await initiateTransfer(
+      const resp = await initiateTransfer(
         sendPeer.id,
         p2pSelKeys,
         p2pSelServers
       );
-      setSentPin(pin);
+      setSentPin(resp.pin);
 
       // Read key contents and prepare data
       const keyTransfers = await Promise.all(
@@ -254,7 +198,7 @@ export function ExportImportTab() {
           identity_file: s.identity_file,
         }));
 
-      await sendPeerData(sendPeer.id, keyTransfers, serverTransfers, "direct");
+      await sendPeerData(sendPeer.id, keyTransfers, serverTransfers, resp.connection_id);
       toast.success(t(language, "exportTab.p2pSent"));
     } catch (e) {
       toast.error(`Send error: ${e}`);
@@ -308,9 +252,7 @@ export function ExportImportTab() {
               </div>
             </div>
             <Button className="w-full" onClick={() => {
-              setSelectedKeys(keys.map((k) => k.name));
-              setSelectedServers(servers.map((s) => s.host));
-              setExportOpen(true);
+              openExportDialog(keys.map((k) => k.name), servers.map((s) => s.host));
             }}>
               <PackageOpen className="h-4 w-4 mr-2" />
               {t(language, "exportTab.exportBtn")}
@@ -400,25 +342,21 @@ export function ExportImportTab() {
               {/* Peer list */}
               <div className="flex items-center justify-between">
                 <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
-                  {scanning
-                    ? <span className="flex items-center gap-1.5"><Loader2 className="h-3 w-3 animate-spin" /> {t(language, "exportTab.p2pSearching")}</span>
-                    : `${peers.length} ${peers.length === 1 ? 'device' : 'devices'}`
+                  {peers.length === 0
+                    ? <span className="flex items-center gap-1.5"><Loader2 className="h-3 w-3 animate-spin text-muted-foreground" /> {t(language, "exportTab.p2pSearching")}</span>
+                    : `${peers.length} ${peers.length === 1 ? (t(language, "exportTab.deviceFound") || 'device') : (t(language, "exportTab.devicesFound") || 'devices')}`
                   }
                 </Label>
-                <Button variant="ghost" size="sm" onClick={handleRefreshPeers} disabled={scanning}>
-                  <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${scanning ? 'animate-spin' : ''}`} />
-                  {t(language, "exportTab.p2pRefresh")}
-                </Button>
               </div>
 
-              {peers.length === 0 && !scanning && (
+              {peers.length === 0 && (
                 <div className="text-center py-6 text-sm text-muted-foreground border rounded-lg border-dashed">
                   <Monitor className="h-8 w-8 mx-auto mb-2 opacity-30" />
                   {t(language, "exportTab.p2pNoPeers")}
                 </div>
               )}
 
-              {peers.length === 0 && !scanning && incoming.length === 0 && (
+              {peers.length === 0 && incoming.length === 0 && (
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Loader2 className="h-3 w-3 animate-spin" />
                   {t(language, "exportTab.p2pListening")}
@@ -452,71 +390,6 @@ export function ExportImportTab() {
         </div>
       </div>
 
-      {/* Export Dialog */}
-      <Dialog open={exportOpen} onOpenChange={setExportOpen}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Экспорт данных</DialogTitle>
-            <DialogDescription>Выберите что включить в архив</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-2 max-h-[60vh] overflow-y-auto">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">SSH-ключи</Label>
-                <button className="text-xs text-primary" onClick={() =>
-                  setSelectedKeys(selectedKeys.length === keys.length ? [] : keys.map((k) => k.name))
-                }>
-                  {selectedKeys.length === keys.length ? "Снять все" : "Выбрать все"}
-                </button>
-              </div>
-              {keys.map((k) => (
-                <div key={k.name} className="flex items-center gap-2">
-                  <Checkbox checked={selectedKeys.includes(k.name)} onCheckedChange={() => toggleKey(k.name)} />
-                  <label className="text-sm cursor-pointer" onClick={() => toggleKey(k.name)}>{k.name}</label>
-                </div>
-              ))}
-            </div>
-            <Separator />
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Серверы</Label>
-                <button className="text-xs text-primary" onClick={() =>
-                  setSelectedServers(selectedServers.length === servers.length ? [] : servers.map((s) => s.host))
-                }>
-                  {selectedServers.length === servers.length ? "Снять все" : "Выбрать все"}
-                </button>
-              </div>
-              {servers.map((s) => (
-                <div key={s.host} className="flex items-center gap-2">
-                  <Checkbox checked={selectedServers.includes(s.host)} onCheckedChange={() => toggleServer(s.host)} />
-                  <label className="text-sm cursor-pointer" onClick={() => toggleServer(s.host)}>{s.host}</label>
-                </div>
-              ))}
-            </div>
-            <Separator />
-            <div className="space-y-3">
-              <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Защита паролем</Label>
-              <div className="space-y-1.5">
-                <Label>Пароль <span className="text-muted-foreground">(необязательно)</span></Label>
-                <Input type="password" value={exportPassword} onChange={(e) => setExportPassword(e.target.value)} placeholder="Оставьте пустым для без шифрования" />
-              </div>
-              {exportPassword && (
-                <div className="space-y-1.5">
-                  <Label>Повторите пароль</Label>
-                  <Input type="password" value={exportPasswordConfirm} onChange={(e) => setExportPasswordConfirm(e.target.value)} />
-                </div>
-              )}
-              {exportPassword && <p className="text-xs text-muted-foreground">Шифрование: AES-256-GCM + Argon2id (устойчиво к брутфорсу)</p>}
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setExportOpen(false)}>Отмена</Button>
-            <Button onClick={handleExport} disabled={exporting || (!selectedKeys.length && !selectedServers.length)}>
-              {exporting ? "Экспортирую..." : "Экспортировать"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Import Dialog */}
       <Dialog open={importOpen} onOpenChange={setImportOpen}>

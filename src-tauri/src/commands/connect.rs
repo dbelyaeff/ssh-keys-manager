@@ -8,13 +8,37 @@ fn home_dir() -> Result<PathBuf> {
 }
 
 #[tauri::command]
-pub async fn connect_to_server(config: ServerConfig) -> Result<(), String> {
+pub async fn check_installed_terminals() -> Result<Vec<String>, String> {
+    let mut terminals = vec!["Terminal.app".to_string()];
+    
+    if std::path::Path::new("/Applications/iTerm.app").exists() || std::path::Path::new("/Applications/iTerm2.app").exists() {
+        terminals.push("iTerm.app".to_string());
+    }
+    
+    if std::path::Path::new("/Applications/Warp.app").exists() {
+        terminals.push("Warp.app".to_string());
+    }
+    
+    Ok(terminals)
+}
+
+#[tauri::command]
+pub async fn connect_to_server(config: ServerConfig, terminal: String) -> Result<(), String> {
     let mut ssh_cmd = format!("ssh {}@{}", config.user, config.hostname);
     if config.port != 22 {
         ssh_cmd.push_str(&format!(" -p {}", config.port));
     }
     if !config.identity_file.is_empty() {
-        ssh_cmd.push_str(&format!(" -i {}", config.identity_file));
+        let id_file = if config.identity_file.starts_with("~/") {
+            if let Ok(home) = home_dir() {
+                home.join(config.identity_file.strip_prefix("~/").unwrap()).to_string_lossy().to_string()
+            } else {
+                config.identity_file.clone()
+            }
+        } else {
+            config.identity_file.clone()
+        };
+        ssh_cmd.push_str(&format!(" -i {}", id_file));
     }
 
     let safe_host = config.hostname.replace(|c: char| !c.is_alphanumeric(), "_");
@@ -28,7 +52,16 @@ pub async fn connect_to_server(config: ServerConfig) -> Result<(), String> {
     use std::os::unix::fs::PermissionsExt;
     std::fs::set_permissions(&script_path, std::fs::Permissions::from_mode(0o755)).map_err(|e| e.to_string())?;
 
-    let output = Command::new("open")
+    let mut open_cmd = Command::new("open");
+    if terminal == "Terminal.app" {
+        open_cmd.arg("-a").arg("Terminal");
+    } else if terminal == "iTerm.app" {
+        open_cmd.arg("-a").arg("iTerm");
+    } else if terminal == "Warp.app" {
+        open_cmd.arg("-a").arg("Warp");
+    }
+    
+    let output = open_cmd
         .arg(&script_path)
         .output()
         .map_err(|e| format!("Cannot open terminal: {e}"))?;
@@ -53,7 +86,16 @@ pub async fn check_server_connection(config: ServerConfig) -> Result<bool, Strin
         cmd.arg("-p").arg(config.port.to_string());
     }
     if !config.identity_file.is_empty() {
-        cmd.arg("-i").arg(&config.identity_file);
+        let id_file = if config.identity_file.starts_with("~/") {
+            if let Ok(home) = home_dir() {
+                home.join(config.identity_file.strip_prefix("~/").unwrap()).to_string_lossy().to_string()
+            } else {
+                config.identity_file.clone()
+            }
+        } else {
+            config.identity_file.clone()
+        };
+        cmd.arg("-i").arg(&id_file);
     }
     cmd.arg(format!("{}@{}", config.user, config.hostname));
     cmd.arg("exit");
@@ -72,8 +114,33 @@ pub async fn install_key_to_server(config: ServerConfig, password: String) -> Re
         args.push(config.port.to_string());
     }
     if !config.identity_file.is_empty() {
+        let id_file = if config.identity_file.starts_with("~/") {
+            if let Ok(home) = home_dir() {
+                home.join(config.identity_file.strip_prefix("~/").unwrap()).to_string_lossy().to_string()
+            } else {
+                config.identity_file.clone()
+            }
+        } else {
+            config.identity_file.clone()
+        };
+        
+        // Ensure .pub file exists for ssh-copy-id
+        let pub_file = format!("{}.pub", id_file);
+        let pub_path = std::path::Path::new(&pub_file);
+        if !pub_path.exists() {
+            if let Ok(out) = Command::new("ssh-keygen").args(["-y", "-f", &id_file]).output() {
+                if out.status.success() {
+                    let mut content = String::from_utf8_lossy(&out.stdout).to_string();
+                    if !content.ends_with('\n') {
+                        content.push('\n');
+                    }
+                    let _ = std::fs::write(&pub_file, content);
+                }
+            }
+        }
+
         args.push("-i".to_string());
-        args.push(config.identity_file.clone());
+        args.push(id_file);
     }
     args.push(format!("{}@{}", config.user, config.hostname));
 

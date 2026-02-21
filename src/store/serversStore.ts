@@ -6,6 +6,8 @@ interface ServersState {
   selectedServer: string | null;
   selectedServerConfig: ServerConfig | null;
   loading: boolean;
+  checkedServers: string[];
+  setCheckedServers: (servers: string[]) => void;
   loadServers: () => Promise<void>;
   selectServer: (host: string) => void;
   setServers: (servers: ServerConfig[]) => void;
@@ -16,6 +18,8 @@ export const useServersStore = create<ServersState>((set, get) => ({
   selectedServer: null,
   selectedServerConfig: null,
   loading: false,
+  checkedServers: [],
+  setCheckedServers: (checkedServers: string[]) => set({ checkedServers }),
 
   loadServers: async () => {
     set({ loading: true });

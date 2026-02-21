@@ -5,6 +5,18 @@ All notable changes to SSH Keys Manager will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.3] - 2026-02-21
+
+### Added
+- "Select All" checkbox in SSH Keys and Servers list headers
+- Global UI state for Selected items (Sync selection across tabs for Export)
+- Dynamic detection of installed macOS terminals (Terminal.app, iTerm, Warp) in Settings
+
+### Changed
+- Export dialog extracted into a standalone modal (no longer forces changing to Export tab)
+- UI styling improvements for SSH Keys and Servers lists to enhance alignment
+- Improved Install Key button behaviour in server connection logic
+
 ## [1.0.1] - 2026-02-21
 
 ### Added
@@ -95,5 +107,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Modal dialogs for all creation flows
 - Full dark mode / light mode support
 
+[1.0.3]: https://github.com/dbelyaeff/ssh-keys-manager/releases/tag/v1.0.3
 [1.0.1]: https://github.com/dbelyaeff/ssh-keys-manager/releases/tag/v1.0.1
 [1.0.0]: https://github.com/dbelyaeff/ssh-keys-manager/releases/tag/v1.0.0

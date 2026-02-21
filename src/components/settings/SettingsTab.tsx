@@ -1,12 +1,20 @@
+import { useEffect, useState } from "react";
 import { useSettingsStore } from "@/store/settingsStore";
 import { t, Language } from "@/lib/i18n";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Monitor, Moon, Sun, Globe, Info } from "lucide-react";
+import { Monitor, Moon, Sun, Globe, Terminal, Info } from "lucide-react";
+import { TerminalApp } from "@/store/settingsStore";
+import { checkInstalledTerminals } from "@/lib/tauri";
 
 export function SettingsTab() {
-    const { theme, language, setTheme, setLanguage } = useSettingsStore();
+    const { theme, language, terminal, setTheme, setLanguage, setTerminal } = useSettingsStore();
+    const [installedTerminals, setInstalledTerminals] = useState<string[]>(["Terminal.app"]);
+
+    useEffect(() => {
+        checkInstalledTerminals().then(terms => setInstalledTerminals(terms)).catch(console.error);
+    }, []);
 
     return (
         <div className="h-full overflow-y-auto p-8">
@@ -66,6 +74,23 @@ export function SettingsTab() {
                         </Select>
                     </div>
 
+                    <div className="space-y-3">
+                        <Label className="uppercase text-xs font-semibold text-muted-foreground tracking-wider flex items-center gap-2">
+                            <Terminal className="w-4 h-4" /> {t(language, "settingsTab.terminal") || "Терминал по умолчанию"}
+                        </Label>
+                        <Select value={terminal} onValueChange={(val) => setTerminal(val as TerminalApp)}>
+                            <SelectTrigger className="w-full sm:w-64">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {installedTerminals.includes("Terminal.app") && <SelectItem value="Terminal.app">Terminal.app (macOS)</SelectItem>}
+                                {installedTerminals.includes("iTerm.app") && <SelectItem value="iTerm.app">iTerm2</SelectItem>}
+                                {installedTerminals.includes("Warp.app") && <SelectItem value="Warp.app">Warp</SelectItem>}
+                            </SelectContent>
+                        </Select>
+                        <p className="text-xs text-muted-foreground">Используется при открытии соединения (Подключиться).</p>
+                    </div>
+
                     <Separator />
 
                     <div className="space-y-3">
@@ -77,7 +102,7 @@ export function SettingsTab() {
                                 <img src="/src-tauri/icons/icon.png" alt="Logo" className="w-12 h-12 rounded-lg" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                                 <div>
                                     <h3 className="font-semibold text-base">SSH Keys Manager</h3>
-                                    <p className="text-xs text-muted-foreground">{t(language, "settingsTab.version")} 1.0.1</p>
+                                    <p className="text-xs text-muted-foreground">{t(language, "settingsTab.version")} 1.0.3</p>
                                 </div>
                             </div>
                             <div className="text-sm space-y-1.5">

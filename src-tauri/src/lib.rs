@@ -26,6 +26,7 @@ pub fn run() {
             install_key_to_server,
             remove_known_host,
             check_server_connection,
+            check_installed_terminals,
             export_archive,
             import_archive,
             apply_import,

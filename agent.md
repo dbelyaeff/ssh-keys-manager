@@ -294,4 +294,6 @@
 3. Реализуй Frontend → проверь `tsc --noEmit`
 4. Запусти `npm run tauri dev` и проверь этап вручную
 5. Зафиксируй результат, переходи к следующему этапу
-6. **Не переходи к следующему этапу, если текущий не компилируется или функции не работают**
+6. **ВАЖНО**: После всех изменений производи сборку, перезаписывай приложение в `/Applications` на этой машине и запускай его командой:
+   `npm run tauri build && rm -rf "/Applications/SSH Keys Manager.app" && cp -R "src-tauri/target/release/bundle/macos/SSH Keys Manager.app" /Applications/ && open "/Applications/SSH Keys Manager.app"`
+7. **Не переходи к следующему этапу, если текущий не компилируется или функции не работают**

@@ -6,6 +6,8 @@ interface KeysState {
   selectedKey: string | null;
   keyContent: KeyContent | null;
   loading: boolean;
+  checkedKeys: string[];
+  setCheckedKeys: (keys: string[]) => void;
   loadKeys: () => Promise<void>;
   selectKey: (name: string) => Promise<void>;
   setKeys: (keys: SshKey[]) => void;
@@ -16,6 +18,8 @@ export const useKeysStore = create<KeysState>((set, get) => ({
   selectedKey: null,
   keyContent: null,
   loading: false,
+  checkedKeys: [],
+  setCheckedKeys: (checkedKeys: string[]) => set({ checkedKeys }),
 
   loadKeys: async () => {
     set({ loading: true });
