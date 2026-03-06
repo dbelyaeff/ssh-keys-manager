@@ -144,7 +144,7 @@ pub async fn install_key_to_server(config: ServerConfig, password: String) -> Re
     }
     args.push(format!("{}@{}", config.user, config.hostname));
 
-    // Use sshpass if available, otherwise fall back to expect
+    // Use sshpass if available, otherwise fall back to ssh-copy-id with expect script
     let sshpass = Command::new("which").arg("sshpass").output()
         .ok()
         .filter(|o| o.status.success())
@@ -158,13 +158,49 @@ pub async fn install_key_to_server(config: ServerConfig, password: String) -> Re
             .output()
             .map_err(|e| format!("ssh-copy-id error: {e}"))?
     } else {
-        // Try ssh-copy-id with SSH_ASKPASS workaround
-        Command::new("ssh-copy-id")
-            .args(&args)
-            .env("SSH_ASKPASS_REQUIRE", "force")
-            .env("DISPLAY", ":0")
+        // Use expect script to automate password entry
+        // Escape special characters in password for expect
+        let escaped_password = password.replace("\\", "\\\\").replace("\"", "\\\"").replace("$", "\\$");
+        let args_str = args.iter().map(|s| format!("\"{}\"", s.replace("\"", "\\\""))).collect::<Vec<_>>().join(" ");
+        
+        let expect_script = format!(
+            r#"#!/usr/bin/expect -f
+set timeout 30
+spawn ssh-copy-id {}
+expect {{
+    "yes/no" {{
+        send "yes\r"
+        exp_continue
+    }}
+    "password:" {{
+        send "{}\r"
+    }}
+    timeout {{
+        exit 1
+    }}
+    eof
+}}
+expect eof
+"#,
+            args_str,
+            escaped_password
+        );
+        
+        let script_path = "/tmp/ssh_keys_manager_expect.sh";
+        std::fs::write(script_path, &expect_script).map_err(|e| format!("Expect script write error: {e}"))?;
+        
+        use std::os::unix::fs::PermissionsExt;
+        let _ = std::fs::set_permissions(script_path, std::fs::Permissions::from_mode(0o755));
+        
+        let output = Command::new("expect")
+            .arg(script_path)
             .output()
-            .map_err(|e| format!("ssh-copy-id error: {e}"))?
+            .map_err(|e| format!("Expect script error: {}. Consider installing sshpass: brew install sshpass", e))?;
+        
+        // Clean up expect script
+        let _ = std::fs::remove_file(script_path);
+        
+        output
     };
 
     let stderr = String::from_utf8_lossy(&output.stderr).to_string();
