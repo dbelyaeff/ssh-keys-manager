@@ -105,10 +105,18 @@ pub async fn save_server(old_host: String, config: ServerConfig) -> Result<(), S
     let mut servers = parse_config_str(&existing);
 
     if old_host.is_empty() {
-        // New server
+        // New server: check if host already exists
+        if servers.iter().any(|s| s.host == config.host) {
+            return Err(format!("Хост «{}» уже существует", config.host));
+        }
         servers.push(config);
     } else {
         // Update existing
+        // If renaming, check if new name already exists elsewhere
+        if config.host != old_host && servers.iter().any(|s| s.host == config.host) {
+            return Err(format!("Хост «{}» уже существует", config.host));
+        }
+
         let mut found = false;
         for srv in &mut servers {
             if srv.host == old_host {

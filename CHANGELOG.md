@@ -5,6 +5,13 @@ All notable changes to SSH Keys Manager will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-04-15
+
+### Added
+- Enforced unique host names (SSH aliases) in configuration
+- Duplicate name detection in both frontend (UI) and backend (Rust)
+- Improved error messaging in Russian for duplicate host names
+
 ## [1.0.4] - 2026-03-06
 
 ### Fixed
@@ -118,6 +125,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Modal dialogs for all creation flows
 - Full dark mode / light mode support
 
+[1.1.0]: https://github.com/dbelyaeff/ssh-keys-manager/releases/tag/v1.1.0
 [1.0.3]: https://github.com/dbelyaeff/ssh-keys-manager/releases/tag/v1.0.3
 [1.0.1]: https://github.com/dbelyaeff/ssh-keys-manager/releases/tag/v1.0.1
 [1.0.0]: https://github.com/dbelyaeff/ssh-keys-manager/releases/tag/v1.0.0

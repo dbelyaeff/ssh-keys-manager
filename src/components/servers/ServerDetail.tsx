@@ -88,6 +88,13 @@ export function ServerDetail() {
 
   const handleSave = async () => {
     if (!form.host.trim()) { toast.error("Укажите имя хоста (Host)"); return; }
+
+    const { servers } = useServersStore.getState();
+    if (form.host.trim() !== originalHost && servers.find(s => s.host === form.host.trim())) {
+      toast.error(`Хост «${form.host.trim()}» уже существует`);
+      return;
+    }
+
     setSaving(true);
     try {
       await saveServer(originalHost, form);

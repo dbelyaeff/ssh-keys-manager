@@ -49,6 +49,13 @@ export function ServerCreateModal({ open, onOpenChange }: Props) {
             toast.error("Укажите псевдоним хоста (Host)");
             return;
         }
+
+        const { servers } = useServersStore.getState();
+        if (servers.find(s => s.host === host.trim())) {
+            toast.error(`Хост «${host.trim()}» уже существует`);
+            return;
+        }
+
         setSaving(true);
         try {
             await saveServer("", {
