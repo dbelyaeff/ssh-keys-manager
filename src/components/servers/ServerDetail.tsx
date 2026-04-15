@@ -44,14 +44,31 @@ export function ServerDetail() {
   const [genOpen, setGenOpen] = useState(false);
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
   const [isChecking, setIsChecking] = useState(false);
+  const [showDuplicateError, setShowDuplicateError] = useState(false);
+
+  const isDuplicate = form.host.trim() !== "" &&
+    form.host.trim().toLowerCase() !== originalHost.toLowerCase() &&
+    servers.some(s => s.host.toLowerCase() === form.host.trim().toLowerCase());
 
   useEffect(() => {
     if (srv) {
       setForm({ ...srv });
       setOriginalHost(srv.host);
       setIsConnected(false);
+      setShowDuplicateError(false);
     }
   }, [srv, selectedServer]);
+
+  useEffect(() => {
+    if (!isDuplicate) {
+      setShowDuplicateError(false);
+      return;
+    }
+    const timer = setTimeout(() => {
+      setShowDuplicateError(true);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [form.host, isDuplicate]);
 
   useEffect(() => {
     if (!form.hostname) {
@@ -172,7 +189,17 @@ export function ServerDetail() {
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <Label>Host <span className="text-muted-foreground">(псевдоним)</span></Label>
-            <Input value={form.host} onChange={(e) => set("host", e.target.value)} placeholder="my-server" />
+            <Input
+              value={form.host}
+              onChange={(e) => set("host", e.target.value)}
+              placeholder="my-server"
+              className={cn(isDuplicate && "text-destructive border-destructive focus-visible:ring-destructive")}
+            />
+            {showDuplicateError && (
+              <p className="text-[10px] font-medium text-destructive mt-1 animate-in fade-in slide-in-from-top-1 duration-200">
+                Хост с таким именем уже существует
+              </p>
+            )}
           </div>
           <div className="space-y-1.5">
             <Label>HostName <span className="text-muted-foreground">(IP или домен)</span></Label>
@@ -290,7 +317,7 @@ export function ServerDetail() {
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
-          <Button size="sm" onClick={handleSave} disabled={saving}>
+          <Button size="sm" onClick={handleSave} disabled={saving || isDuplicate}>
             <Save className="h-3.5 w-3.5 mr-1.5" />
             {saving ? "Сохраняю..." : "Сохранить"}
           </Button>

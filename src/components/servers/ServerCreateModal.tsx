@@ -37,12 +37,27 @@ export function ServerCreateModal({ open, onOpenChange }: Props) {
 
     const [keyOpen, setKeyOpen] = useState(false);
     const [genOpen, setGenOpen] = useState(false);
+    const [showDuplicateError, setShowDuplicateError] = useState(false);
+
+    const { servers } = useServersStore();
+    const isDuplicate = host.trim() !== "" && servers.some(s => s.host.toLowerCase() === host.trim().toLowerCase());
 
     useEffect(() => {
         if (open) {
             loadKeys();
         }
     }, [open, loadKeys]);
+
+    useEffect(() => {
+        if (!isDuplicate) {
+            setShowDuplicateError(false);
+            return;
+        }
+        const timer = setTimeout(() => {
+            setShowDuplicateError(true);
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [host, isDuplicate]);
 
     const handleCreate = async () => {
         if (!host.trim()) {
@@ -97,7 +112,13 @@ export function ServerCreateModal({ open, onOpenChange }: Props) {
                                 placeholder="my-server"
                                 value={host}
                                 onChange={(e) => setHost(e.target.value)}
+                                className={cn(isDuplicate && "text-destructive border-destructive focus-visible:ring-destructive")}
                             />
+                            {showDuplicateError && (
+                                <p className="text-[10px] font-medium text-destructive mt-1 animate-in fade-in slide-in-from-top-1 duration-200">
+                                    Хост с таким именем уже существует
+                                </p>
+                            )}
                         </div>
                         <div className="space-y-1.5">
                             <Label>HostName <span className="text-muted-foreground">(IP или домен)</span></Label>
@@ -175,7 +196,7 @@ export function ServerCreateModal({ open, onOpenChange }: Props) {
 
                 <DialogFooter>
                     <Button variant="outline" onClick={() => onOpenChange(false)}>Отмена</Button>
-                    <Button onClick={handleCreate} disabled={saving}>
+                    <Button onClick={handleCreate} disabled={saving || isDuplicate}>
                         {saving ? "Создаю..." : "Создать"}
                     </Button>
                 </DialogFooter>
