@@ -37,7 +37,6 @@ export function ServerCreateModal({ open, onOpenChange }: Props) {
 
     const [keyOpen, setKeyOpen] = useState(false);
     const [genOpen, setGenOpen] = useState(false);
-    const [showDuplicateError, setShowDuplicateError] = useState(false);
 
     const { servers } = useServersStore();
     const isDuplicate = host.trim() !== "" && servers.some(s => s.host.toLowerCase() === host.trim().toLowerCase());
@@ -50,11 +49,11 @@ export function ServerCreateModal({ open, onOpenChange }: Props) {
 
     useEffect(() => {
         if (!isDuplicate) {
-            setShowDuplicateError(false);
+            toast.dismiss("duplicate-host-error");
             return;
         }
         const timer = setTimeout(() => {
-            setShowDuplicateError(true);
+            toast.error("Хост с таким именем уже существует", { id: "duplicate-host-error" });
         }, 500);
         return () => clearTimeout(timer);
     }, [host, isDuplicate]);
@@ -114,11 +113,6 @@ export function ServerCreateModal({ open, onOpenChange }: Props) {
                                 onChange={(e) => setHost(e.target.value)}
                                 className={cn(isDuplicate && "text-destructive border-destructive focus-visible:ring-destructive")}
                             />
-                            {showDuplicateError && (
-                                <p className="text-[10px] font-medium text-destructive mt-1 animate-in fade-in slide-in-from-top-1 duration-200">
-                                    Хост с таким именем уже существует
-                                </p>
-                            )}
                         </div>
                         <div className="space-y-1.5">
                             <Label>HostName <span className="text-muted-foreground">(IP или домен)</span></Label>
