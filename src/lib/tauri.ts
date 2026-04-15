@@ -147,3 +147,10 @@ export const sendPeerData = (
 ) => invoke<void>("send_peer_data", { peerId, keys, servers, connectionId });
 export const applyReceivedData = (connectionId: string, overwrite: boolean) =>
   invoke<void>("apply_received_data", { connectionId, overwrite });
+export interface WslDistro {
+  name: string;
+}
+
+export const getWslDistros = () => invoke<WslDistro[]>("get_wsl_distros");
+export const syncToWsl = (distro: string) => invoke<void>("sync_to_wsl", { distro });
+export const isWindows = () => invoke<boolean>("is_windows");

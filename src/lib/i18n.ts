@@ -58,6 +58,10 @@ export const translations = {
             author: "Автор",
             authorName: "Д.П. Беляев",
             license: "Лицензия",
+            wsl: "Интеграция с WSL",
+            wslDesc: "Синхронизировать SSH-ключи и конфиг с подсистемой Linux (WSL)",
+            wslSync: "Синхронизировать сейчас",
+            wslNoDistros: "Дистрибутивы не найдены",
         }
     },
     en: {
@@ -117,6 +121,10 @@ export const translations = {
             author: "Author",
             authorName: "D.P. Belyaev",
             license: "License",
+            wsl: "WSL Integration",
+            wslDesc: "Sync SSH keys and config with Windows Subsystem for Linux (WSL)",
+            wslSync: "Sync Now",
+            wslNoDistros: "No distributions found",
         }
     }
 };

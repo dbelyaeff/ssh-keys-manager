@@ -8,19 +8,27 @@ interface SettingsState {
     theme: Theme;
     language: Language;
     terminal: TerminalApp;
+    wslEnabled: boolean;
+    wslDistro: string;
     setTheme: (theme: Theme) => void;
     setLanguage: (lang: Language) => void;
     setTerminal: (term: TerminalApp) => void;
+    setWslEnabled: (enabled: boolean) => void;
+    setWslDistro: (distro: string) => void;
 }
 
 const savedTheme = (localStorage.getItem("settings_theme") as Theme) || "system";
 const savedLang = (localStorage.getItem("settings_language") as Language) || "ru";
 const savedTerminal = (localStorage.getItem("settings_terminal") as TerminalApp) || "Terminal.app";
+const savedWslEnabled = localStorage.getItem("settings_wsl_enabled") === "true";
+const savedWslDistro = localStorage.getItem("settings_wsl_distro") || "";
 
 export const useSettingsStore = create<SettingsState>((set) => ({
     theme: savedTheme,
     language: savedLang,
     terminal: savedTerminal,
+    wslEnabled: savedWslEnabled,
+    wslDistro: savedWslDistro,
     setTheme: (theme) => {
         localStorage.setItem("settings_theme", theme);
         set({ theme });
@@ -32,5 +40,13 @@ export const useSettingsStore = create<SettingsState>((set) => ({
     setTerminal: (terminal) => {
         localStorage.setItem("settings_terminal", terminal);
         set({ terminal });
+    },
+    setWslEnabled: (enabled) => {
+        localStorage.setItem("settings_wsl_enabled", enabled.toString());
+        set({ wslEnabled: enabled });
+    },
+    setWslDistro: (distro) => {
+        localStorage.setItem("settings_wsl_distro", distro);
+        set({ wslDistro: distro });
     },
 }));

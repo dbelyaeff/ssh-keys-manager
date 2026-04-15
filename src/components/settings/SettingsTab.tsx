@@ -4,17 +4,51 @@ import { t, Language } from "@/lib/i18n";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Monitor, Moon, Sun, Globe, Terminal, Info } from "lucide-react";
+import { Monitor, Moon, Sun, Globe, Terminal, Info, RefreshCw, LayoutTemplate } from "lucide-react";
 import { TerminalApp } from "@/store/settingsStore";
-import { checkInstalledTerminals } from "@/lib/tauri";
+import { checkInstalledTerminals, getWslDistros, syncToWsl, WslDistro, isWindows as isWindowsCmd } from "@/lib/tauri";
+import { toast } from "sonner";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export function SettingsTab() {
-    const { theme, language, terminal, setTheme, setLanguage, setTerminal } = useSettingsStore();
+    const { theme, language, terminal, wslEnabled, wslDistro, setTheme, setLanguage, setTerminal, setWslEnabled, setWslDistro } = useSettingsStore();
     const [installedTerminals, setInstalledTerminals] = useState<string[]>(["Terminal.app"]);
+    const [wslDistros, setWslDistros] = useState<WslDistro[]>([]);
+    const [isWindows, setIsWindows] = useState(false);
+    const [syncing, setSyncing] = useState(false);
 
     useEffect(() => {
         checkInstalledTerminals().then(terms => setInstalledTerminals(terms)).catch(console.error);
-    }, []);
+        
+        isWindowsCmd().then(win => {
+            if (win) {
+                setIsWindows(true);
+                getWslDistros().then(distros => {
+                    setWslDistros(distros);
+                    if (distros.length > 0 && !wslDistro) {
+                        setWslDistro(distros[0].name);
+                    }
+                }).catch(err => {
+                    console.log("WSL not available or failed to list:", err);
+                });
+            }
+        });
+    }, [setWslDistro, wslDistro]);
+
+    const handleSync = async () => {
+        if (!wslDistro) return;
+        setSyncing(true);
+        try {
+            await syncToWsl(wslDistro);
+            toast.success(t(language, "settingsTab.wslSyncSuccess") || "Синхронизировано с WSL");
+        } catch (err) {
+            toast.error(`Sync error: ${err}`);
+        } finally {
+            setSyncing(false);
+        }
+    };
 
     return (
         <div className="h-full overflow-y-auto p-8">
@@ -90,6 +124,49 @@ export function SettingsTab() {
                         </Select>
                         <p className="text-xs text-muted-foreground">Используется при открытии соединения (Подключиться).</p>
                     </div>
+
+                    {isWindows && (
+                        <div className="space-y-4 pt-2 pb-2">
+                            <div className="flex items-center justify-between">
+                                <div className="space-y-0.5">
+                                    <Label className="uppercase text-xs font-semibold text-muted-foreground tracking-wider flex items-center gap-2">
+                                        <LayoutTemplate className="w-4 h-4" /> {t(language, "settingsTab.wsl")}
+                                    </Label>
+                                    <p className="text-xs text-muted-foreground">{t(language, "settingsTab.wslDesc")}</p>
+                                </div>
+                                <Checkbox 
+                                    id="wsl-toggle"
+                                    checked={wslEnabled} 
+                                    onCheckedChange={(checked) => setWslEnabled(!!checked)} 
+                                />
+                            </div>
+
+                            {wslEnabled && (
+                                <div className="flex flex-col sm:flex-row gap-3 pt-1">
+                                    <Select value={wslDistro} onValueChange={setWslDistro}>
+                                        <SelectTrigger className="w-full sm:w-64">
+                                            <SelectValue placeholder={t(language, "settingsTab.wslNoDistros")} />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {wslDistros.map(d => (
+                                                <SelectItem key={d.name} value={d.name}>{d.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <Button 
+                                        variant="outline" 
+                                        size="sm" 
+                                        className="gap-2"
+                                        onClick={handleSync}
+                                        disabled={syncing || !wslDistro}
+                                    >
+                                        <RefreshCw className={cn("w-4 h-4", syncing && "animate-spin")} />
+                                        {t(language, "settingsTab.wslSync")}
+                                    </Button>
+                                </div>
+                            )}
+                        </div>
+                    )}
 
                     <Separator />
 

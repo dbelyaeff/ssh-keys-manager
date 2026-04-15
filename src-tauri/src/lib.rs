@@ -5,6 +5,13 @@ use commands::servers::*;
 use commands::connect::*;
 use commands::archive::*;
 use commands::peer::*;
+use commands::wsl::*;
+use tauri::command;
+
+#[command]
+fn is_windows() -> bool {
+    cfg!(windows)
+}
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -39,6 +46,9 @@ pub fn run() {
             send_peer_data,
             apply_received_data,
             stop_peer_service,
+            get_wsl_distros,
+            sync_to_wsl,
+            is_windows,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
