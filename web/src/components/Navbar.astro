@@ -17,9 +17,9 @@ const { lang } = Astro.props;
 		
 		<div class="flex items-center gap-6">
 			<div class="flex items-center gap-3 glass px-3 py-1.5 rounded-full text-xs font-semibold">
-				<a href="/" class={lang === 'en' ? 'text-electric' : 'hover:text-electric transition-colors'}>EN</a>
+				<a href="/en" class={lang === 'en' ? 'text-electric' : 'hover:text-electric transition-colors'}>EN</a>
 				<div class="w-1 h-1 rounded-full bg-white/20"></div>
-				<a href="/ru" class={lang === 'ru' ? 'text-electric' : 'hover:text-electric transition-colors'}>RU</a>
+				<a href="/" class={lang === 'ru' ? 'text-electric' : 'hover:text-electric transition-colors'}>RU</a>
 			</div>
 			<a href="https://github.com/dbelyaeff/ssh-keys-manager" target="_blank" class="btn-secondary py-2 text-sm"> GitHub </a>
 		</div>
