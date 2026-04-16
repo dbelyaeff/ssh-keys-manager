@@ -49,8 +49,11 @@ pub async fn connect_to_server(config: ServerConfig, terminal: String) -> Result
     );
     std::fs::write(&script_path, bash_content).map_err(|e| e.to_string())?;
     
-    use std::os::unix::fs::PermissionsExt;
-    std::fs::set_permissions(&script_path, std::fs::Permissions::from_mode(0o755)).map_err(|e| e.to_string())?;
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(&script_path, std::fs::Permissions::from_mode(0o755)).map_err(|e| e.to_string())?;
+    }
 
     let mut open_cmd = Command::new("open");
     if terminal == "Terminal.app" {
@@ -189,8 +192,11 @@ expect eof
         let script_path = "/tmp/ssh_keys_manager_expect.sh";
         std::fs::write(script_path, &expect_script).map_err(|e| format!("Expect script write error: {e}"))?;
         
-        use std::os::unix::fs::PermissionsExt;
-        let _ = std::fs::set_permissions(script_path, std::fs::Permissions::from_mode(0o755));
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let _ = std::fs::set_permissions(script_path, std::fs::Permissions::from_mode(0o755));
+        }
         
         let output = Command::new("expect")
             .arg(script_path)

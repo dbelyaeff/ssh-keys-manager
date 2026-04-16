@@ -226,7 +226,8 @@ pub async fn apply_import(
                 let mut content = Vec::new();
                 entry.read_to_end(&mut content).map_err(|e| e.to_string())?;
                 fs::write(&dest, &content).map_err(|e| e.to_string())?;
-                if !path.ends_with(".pub") {
+                #[cfg(unix)]
+                {
                     use std::os::unix::fs::PermissionsExt;
                     fs::set_permissions(&dest, fs::Permissions::from_mode(0o600))
                         .map_err(|e| e.to_string())?;

@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::fs;
+#[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;
 use std::process::Command;
@@ -135,10 +136,13 @@ pub async fn save_key(
         .map_err(|e| format!("Write error: {e}"))?;
 
     // Set permissions
-    fs::set_permissions(&tmp_priv, fs::Permissions::from_mode(0o600))
-        .map_err(|e| e.to_string())?;
-    fs::set_permissions(&tmp_pub, fs::Permissions::from_mode(0o644))
-        .map_err(|e| e.to_string())?;
+    #[cfg(unix)]
+    {
+        fs::set_permissions(&tmp_priv, fs::Permissions::from_mode(0o600))
+            .map_err(|e| e.to_string())?;
+        fs::set_permissions(&tmp_pub, fs::Permissions::from_mode(0o644))
+            .map_err(|e| e.to_string())?;
+    }
 
     fs::rename(&tmp_priv, &priv_path).map_err(|e| e.to_string())?;
     fs::rename(&tmp_pub, &pub_path).map_err(|e| e.to_string())?;
