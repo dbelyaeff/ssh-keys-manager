@@ -1,4 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
+import { getVersion } from "@tauri-apps/api/app";
 
 export interface SshKey {
   name: string;
@@ -154,3 +155,4 @@ export interface WslDistro {
 export const getWslDistros = () => invoke<WslDistro[]>("get_wsl_distros");
 export const syncToWsl = (distro: string) => invoke<void>("sync_to_wsl", { distro });
 export const isWindows = () => invoke<boolean>("is_windows");
+export const getAppVersion = () => getVersion();

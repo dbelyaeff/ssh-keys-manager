@@ -6,7 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Monitor, Moon, Sun, Globe, Terminal, Info, RefreshCw, LayoutTemplate } from "lucide-react";
 import { TerminalApp } from "@/store/settingsStore";
-import { checkInstalledTerminals, getWslDistros, syncToWsl, WslDistro, isWindows as isWindowsCmd } from "@/lib/tauri";
+import { checkInstalledTerminals, getWslDistros, syncToWsl, WslDistro, isWindows as isWindowsCmd, getAppVersion } from "@/lib/tauri";
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
@@ -18,9 +18,11 @@ export function SettingsTab() {
     const [wslDistros, setWslDistros] = useState<WslDistro[]>([]);
     const [isWindows, setIsWindows] = useState(false);
     const [syncing, setSyncing] = useState(false);
+    const [appVersion, setAppVersion] = useState("");
 
     useEffect(() => {
         checkInstalledTerminals().then(terms => setInstalledTerminals(terms)).catch(console.error);
+        getAppVersion().then(setAppVersion).catch(console.error);
         
         isWindowsCmd().then(win => {
             if (win) {
@@ -179,7 +181,7 @@ export function SettingsTab() {
                                 <img src="/src-tauri/icons/icon.png" alt="Logo" className="w-12 h-12 rounded-lg" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                                 <div>
                                     <h3 className="font-semibold text-base">SSH Keys Manager</h3>
-                                    <p className="text-xs text-muted-foreground">{t(language, "settingsTab.version")} 1.0.3</p>
+                                    <p className="text-xs text-muted-foreground">{t(language, "settingsTab.version")} {appVersion || "..."}</p>
                                 </div>
                             </div>
                             <div className="text-sm space-y-1.5">

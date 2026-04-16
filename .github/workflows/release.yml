@@ -56,6 +56,6 @@ jobs:
           tagName: ${{ github.ref_name }}
           releaseName: "SSH Keys Manager ${{ github.ref_name }}"
           releaseBody: "See [CHANGELOG.md](https://github.com/dbelyaeff/ssh-keys-manager/blob/main/CHANGELOG.md) for details."
-          releaseDraft: true
+          releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
