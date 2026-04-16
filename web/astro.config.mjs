@@ -5,8 +5,7 @@ import tailwindcss from '@tailwindcss/vite';
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://dbelyaeff.github.io',
-  base: '/ssh-keys-manager',
+  site: 'https://sshkm.ru',
   vite: {
     plugins: [tailwindcss()]
   }
