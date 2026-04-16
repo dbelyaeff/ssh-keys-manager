@@ -1,6 +1,6 @@
 {
-  "name": "SSH Keys Manager",
-  "short_name": "SSHKM",
+  "name": "Your App Name",
+  "short_name": "Your App",
   "icons": [
     {
       "src": "/android-chrome-192x192.png",
