@@ -118,6 +118,16 @@ cargo install tauri-cli
 
 ### Установка
 
+#### 📦 Через Homebrew (macOS)
+
+Самый простой способ установить SSH Keys Manager на macOS — через [Homebrew](https://brew.sh/):
+
+```bash
+brew install --cask dbelyaeff/tap/sshkm
+```
+
+#### 🛠️ Ручная установка (Все платформы)
+
 ```bash
 # Клонирование репозитория
 git clone https://github.com/dbelyaeff/ssh-keys-manager.git

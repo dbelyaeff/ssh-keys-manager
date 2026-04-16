@@ -37,7 +37,6 @@ const { lang } = Astro.props;
 		</button>
 	</div>
 
-	<!-- Mobile Menu Overlay -->
 	<div id="mobile-menu" class="fixed inset-0 bg-[#0A0A0B] z-[100] flex flex-col items-center justify-center gap-12 transition-all duration-500 opacity-0 pointer-events-none translate-y-10">
 		<div class="flex flex-col items-center gap-8 text-2xl font-display font-bold">
 			<a href="#features" class="mobile-link text-white/60 hover:text-white transition-colors">{lang === 'ru' ? 'Возможности' : 'Features'}</a>
@@ -60,7 +59,7 @@ const { lang } = Astro.props;
 <style>
 	@reference "../styles/global.css";
 
-	nav.scrolled {
+	nav.scrolled:not(.menu-open) {
 		@apply py-3 bg-black/40 backdrop-blur-xl border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.3)];
 	}
 	
@@ -68,7 +67,7 @@ const { lang } = Astro.props;
 		@apply max-w-5xl;
 	}
 
-	nav.scrolled .download-btn {
+	nav.scrolled:not(.menu-open) .download-btn {
 		@apply opacity-100 translate-x-0 pointer-events-auto;
 	}
 
@@ -97,12 +96,13 @@ const { lang } = Astro.props;
 	// Mobile Menu Toggle
 	const toggleMenu = () => {
 		const isActive = mobileMenu?.classList.toggle('active');
+		navbar?.classList.toggle('menu-open');
 		menuIconOpen?.classList.toggle('hidden');
 		menuIconClose?.classList.toggle('hidden');
 		
 		if (isActive) {
 			document.body.style.overflow = 'hidden';
-			document.body.style.touchAction = 'none'; // Prevent scroll on some mobile browsers
+			document.body.style.touchAction = 'none';
 		} else {
 			document.body.style.overflow = '';
 			document.body.style.touchAction = '';
@@ -115,6 +115,7 @@ const { lang } = Astro.props;
 	mobileLinks.forEach(link => {
 		link.addEventListener('click', () => {
 			mobileMenu?.classList.remove('active');
+			navbar?.classList.remove('menu-open');
 			menuIconOpen?.classList.remove('hidden');
 			menuIconClose?.classList.add('hidden');
 			document.body.style.overflow = '';

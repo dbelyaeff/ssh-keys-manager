@@ -43,7 +43,19 @@ const { title, subtitle, cta } = Astro.props;
 				<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
 				{cta}
 			</a>
-			<span class="text-xs text-slate-500 font-mono">v1.1.5 · macOS / Windows / Linux</span>
+			<span class="text-xs text-slate-500 font-mono">v1.1.6 · macOS / Windows / Linux</span>
+		</div>
+
+		<!-- Homebrew Command Snippet -->
+		<div class="mt-8 reveal delay-400 group cursor-pointer" id="copy-brew">
+			<div class="inline-flex items-center gap-3 glass px-4 py-2 rounded-xl border-white/5 group-hover:border-electric/30 transition-all duration-300">
+				<div class="w-2 h-2 rounded-full bg-electric animate-pulse"></div>
+				<code class="text-xs md:text-sm font-mono text-slate-300">brew install --cask dbelyaeff/tap/sshkm</code>
+				<div class="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-widest border-l border-white/10 pl-3">
+					<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-copy transition-transform group-active:scale-90"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+					<span id="copy-text">Copy</span>
+				</div>
+			</div>
 		</div>
 	</div>
 	
@@ -100,4 +112,25 @@ const { title, subtitle, cta } = Astro.props;
 	}, observerOptions);
 
 	document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+	// Copy to Clipboard Logic
+	const copyBtn = document.getElementById('copy-brew');
+	const copyText = document.getElementById('copy-text');
+	
+	copyBtn?.addEventListener('click', async () => {
+		const command = 'brew install --cask dbelyaeff/tap/sshkm';
+		try {
+			await navigator.clipboard.writeText(command);
+			if (copyText) {
+				copyText.innerText = 'Copied!';
+				copyText.classList.add('text-electric');
+				setTimeout(() => {
+					copyText.innerText = 'Copy';
+					copyText.classList.remove('text-electric');
+				}, 2000);
+			}
+		} catch (err) {
+			console.error('Failed to copy: ', err);
+		}
+	});
 </script>
