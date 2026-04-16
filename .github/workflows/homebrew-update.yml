@@ -30,28 +30,28 @@ jobs:
           mkdir -p homebrew-tap/Casks
           
           cat > homebrew-tap/Casks/sshkm.rb <<EOF
-cask "sshkm" do
-  version "${VERSION_CLEAN}"
-  sha256 :no_check
+          cask "sshkm" do
+            version "${VERSION_CLEAN}"
+            sha256 :no_check
 
-  if Hardware::CPU.intel?
-    url "https://github.com/${REPO_NAME}/releases/download/v#{version}/SSH.Keys.Manager_#{version}_x64.dmg"
-  else
-    url "https://github.com/${REPO_NAME}/releases/download/v#{version}/SSH.Keys.Manager_#{version}_aarch64.dmg"
-  end
+            if Hardware::CPU.intel?
+              url "https://github.com/${REPO_NAME}/releases/download/v#{version}/SSH.Keys.Manager_#{version}_x64.dmg"
+            else
+              url "https://github.com/${REPO_NAME}/releases/download/v#{version}/SSH.Keys.Manager_#{version}_aarch64.dmg"
+            end
 
-  name "SSH Keys Manager"
-  desc "Safe and modern SSH key management tool"
-  homepage "https://sshkm.ru"
+            name "SSH Keys Manager"
+            desc "Safe and modern SSH key management tool"
+            homepage "https://sshkm.ru"
 
-  app "SSH Keys Manager.app"
+            app "SSH Keys Manager.app"
 
-  zap trash: [
-    "~/Library/Application Support/com.dbelyaeff.sshkeysmanager",
-    "~/Library/Saved Application State/com.dbelyaeff.sshkeysmanager.savedState",
-  ]
-end
-EOF
+            zap trash: [
+              "~/Library/Application Support/com.dbelyaeff.sshkeysmanager",
+              "~/Library/Saved Application State/com.dbelyaeff.sshkeysmanager.savedState",
+            ]
+          end
+          EOF
 
       - name: Commit and Push
         working-directory: homebrew-tap
