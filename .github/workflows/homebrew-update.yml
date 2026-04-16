@@ -16,22 +16,25 @@ jobs:
           path: homebrew-tap
 
       - name: Update Cask File
+        env:
+          TAG_NAME: ${{ github.event.release.tag_name }}
+          REPO_NAME: ${{ github.repository }}
         run: |
-          VERSION="${{ github.event.release.tag_name }}"
-          VERSION_CLEAN="${VERSION#v}"
+          # Remove 'v' prefix from tag name safely in bash
+          VERSION_CLEAN=$(echo $TAG_NAME | sed 's/^v//')
+          echo "Updating to version $VERSION_CLEAN"
+          
           mkdir -p homebrew-tap/Casks
           
-          # Explicitly set the naming pattern for Tauri 2 assets
-          # ProductName "SSH Keys Manager" becomes "SSH.Keys.Manager" in filenames
           cat > homebrew-tap/Casks/sshkm.rb <<EOF
 cask "sshkm" do
   version "${VERSION_CLEAN}"
   sha256 :no_check
 
   if Hardware::CPU.intel?
-    url "https://github.com/${{ github.repository }}/releases/download/v#{version}/SSH.Keys.Manager_#{version}_x64.dmg"
+    url "https://github.com/${REPO_NAME}/releases/download/v#{version}/SSH.Keys.Manager_#{version}_x64.dmg"
   else
-    url "https://github.com/${{ github.repository }}/releases/download/v#{version}/SSH.Keys.Manager_#{version}_aarch64.dmg"
+    url "https://github.com/${REPO_NAME}/releases/download/v#{version}/SSH.Keys.Manager_#{version}_aarch64.dmg"
   end
 
   name "SSH Keys Manager"
@@ -53,5 +56,5 @@ EOF
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add Casks/sshkm.rb
-          git commit -m "Update sshkm to version ${{ github.event.release.tag_name }}"
+          git commit -m "Update sshkm to version $TAG_NAME"
           git push
