@@ -38,18 +38,20 @@ const { lang } = Astro.props;
 	</div>
 
 	<!-- Mobile Menu Overlay -->
-	<div id="mobile-menu" class="fixed inset-0 bg-obsidian z-[60] flex flex-col items-center justify-center gap-10 transition-all duration-500 opacity-0 pointer-events-none translate-y-10">
-		<div class="flex flex-col items-center gap-8 text-2xl font-display font-medium">
+	<div id="mobile-menu" class="fixed inset-0 bg-[#0A0A0B] z-[100] flex flex-col items-center justify-center gap-12 transition-all duration-500 opacity-0 pointer-events-none translate-y-10">
+		<div class="flex flex-col items-center gap-8 text-2xl font-display font-bold">
 			<a href="#features" class="mobile-link text-white/60 hover:text-white transition-colors">{lang === 'ru' ? 'Возможности' : 'Features'}</a>
 			<a href="https://github.com/dbelyaeff/ssh-keys-manager" target="_blank" class="mobile-link text-white/60 hover:text-white transition-colors">GitHub</a>
-			<div class="flex items-center gap-4 bg-white/5 px-6 py-3 rounded-full">
+			
+			<div class="mt-4 flex items-center gap-4 bg-white/5 border border-white/10 px-8 py-4 rounded-full">
 				<a href="/en" class={lang === 'en' ? 'text-electric' : 'text-white/40'}>EN</a>
-				<div class="w-1 h-1 rounded-full bg-white/20"></div>
+				<div class="w-1.5 h-1.5 rounded-full bg-white/20"></div>
 				<a href="/" class={lang === 'ru' ? 'text-electric' : 'text-white/40'}>RU</a>
 			</div>
 		</div>
-		<a href="https://github.com/dbelyaeff/ssh-keys-manager/releases" class="btn-primary py-4 px-10 text-lg w-[80%] max-w-sm text-center flex items-center justify-center gap-3">
-			<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-download"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+		
+		<a href="https://github.com/dbelyaeff/ssh-keys-manager/releases" class="btn-primary py-5 px-10 text-lg w-[85%] max-w-sm flex items-center justify-center gap-3 shadow-[0_0_40px_rgba(0,242,255,0.2)]">
+			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-download"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
 			{lang === 'ru' ? 'Скачать приложение' : 'Download App'}
 		</a>
 	</div>
@@ -71,7 +73,7 @@ const { lang } = Astro.props;
 	}
 
 	#mobile-menu.active {
-		@apply opacity-100 pointer-events-auto translate-y-0;
+		@apply opacity-100 pointer-events-auto translate-y-0 shadow-2xl;
 	}
 </style>
 
@@ -100,8 +102,10 @@ const { lang } = Astro.props;
 		
 		if (isActive) {
 			document.body.style.overflow = 'hidden';
+			document.body.style.touchAction = 'none'; // Prevent scroll on some mobile browsers
 		} else {
 			document.body.style.overflow = '';
+			document.body.style.touchAction = '';
 		}
 	};
 
@@ -114,6 +118,7 @@ const { lang } = Astro.props;
 			menuIconOpen?.classList.remove('hidden');
 			menuIconClose?.classList.add('hidden');
 			document.body.style.overflow = '';
+			document.body.style.touchAction = '';
 		});
 	});
 </script>
