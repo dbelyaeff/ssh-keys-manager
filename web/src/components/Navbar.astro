@@ -7,12 +7,14 @@ const { lang } = Astro.props;
 ---
 
 <nav id="navbar" class="fixed top-0 left-0 w-full z-50 py-6 transition-all duration-500 ease-in-out border-b border-transparent">
-	<div id="navbar-container" class="max-w-7xl mx-auto px-6 flex justify-between items-center transition-all duration-500 ease-in-out">
+	<div id="navbar-container" class="max-w-7xl mx-auto px-6 flex items-center justify-between transition-all duration-500">
 		<div class="flex items-center gap-2">
+			<img src="/apple-touch-icon.png" alt="Logo" class="w-8 h-8 rounded-lg shadow-lg shadow-electric/20" />
 			<span class="font-display text-lg font-bold tracking-tight">SSH Keys Manager</span>
 		</div>
 		
-		<div class="flex items-center gap-4">
+		<!-- Desktop Menu -->
+		<div class="hidden md:flex items-center gap-4">
 			<a href="https://github.com/dbelyaeff/ssh-keys-manager/releases" class="download-btn btn-primary py-2 px-6 text-sm opacity-0 -translate-x-4 pointer-events-none transition-all duration-500">
 				{lang === 'ru' ? 'Скачать' : 'Download'}
 			</a>
@@ -26,6 +28,28 @@ const { lang } = Astro.props;
 				GitHub
 			</a>
 		</div>
+
+		<!-- Mobile Menu Toggle -->
+		<button id="mobile-menu-toggle" class="md:hidden flex items-center p-2 text-white hover:text-electric transition-colors focus:outline-none" aria-label="Toggle menu">
+			<svg id="menu-icon-open" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-menu"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+			<svg id="menu-icon-close" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x hidden"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+		</button>
+	</div>
+
+	<!-- Mobile Menu Overlay -->
+	<div id="mobile-menu" class="fixed inset-0 bg-obsidian z-[60] flex flex-col items-center justify-center gap-10 transition-all duration-500 opacity-0 pointer-events-none translate-y-10">
+		<div class="flex flex-col items-center gap-8 text-2xl font-display font-medium">
+			<a href="#features" class="mobile-link text-white/60 hover:text-white transition-colors">{lang === 'ru' ? 'Возможности' : 'Features'}</a>
+			<a href="https://github.com/dbelyaeff/ssh-keys-manager" target="_blank" class="mobile-link text-white/60 hover:text-white transition-colors">GitHub</a>
+			<div class="flex items-center gap-4 bg-white/5 px-6 py-3 rounded-full">
+				<a href="/en" class={lang === 'en' ? 'text-electric' : 'text-white/40'}>EN</a>
+				<div class="w-1 h-1 rounded-full bg-white/20"></div>
+				<a href="/" class={lang === 'ru' ? 'text-electric' : 'text-white/40'}>RU</a>
+			</div>
+		</div>
+		<a href="https://github.com/dbelyaeff/ssh-keys-manager/releases" class="btn-primary py-4 px-10 text-lg w-[80%] max-w-sm text-center">
+			{lang === 'ru' ? 'Скачать приложение' : 'Download App'}
+		</a>
 	</div>
 </nav>
 
@@ -43,16 +67,51 @@ const { lang } = Astro.props;
 	nav.scrolled .download-btn {
 		@apply opacity-100 translate-x-0 pointer-events-auto;
 	}
+
+	#mobile-menu.active {
+		@apply opacity-100 pointer-events-auto translate-y-0;
+	}
 </style>
 
 <script>
 	const navbar = document.getElementById('navbar');
+	const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+	const mobileMenu = document.getElementById('mobile-menu');
+	const menuIconOpen = document.getElementById('menu-icon-open');
+	const menuIconClose = document.getElementById('menu-icon-close');
+	const mobileLinks = document.querySelectorAll('.mobile-link');
 	
+	// Scroll Logic
 	window.addEventListener('scroll', () => {
 		if (window.scrollY > 150) {
 			navbar?.classList.add('scrolled');
 		} else {
 			navbar?.classList.remove('scrolled');
 		}
+	});
+
+	// Mobile Menu Toggle
+	const toggleMenu = () => {
+		const isActive = mobileMenu?.classList.toggle('active');
+		menuIconOpen?.classList.toggle('hidden');
+		menuIconClose?.classList.toggle('hidden');
+		
+		if (isActive) {
+			document.body.style.overflow = 'hidden';
+		} else {
+			document.body.style.overflow = '';
+		}
+	};
+
+	mobileMenuToggle?.addEventListener('click', toggleMenu);
+
+	// Close menu on link click
+	mobileLinks.forEach(link => {
+		link.addEventListener('click', () => {
+			mobileMenu?.classList.remove('active');
+			menuIconOpen?.classList.remove('hidden');
+			menuIconClose?.classList.add('hidden');
+			document.body.style.overflow = '';
+		});
 	});
 </script>

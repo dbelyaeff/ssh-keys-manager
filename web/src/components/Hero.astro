@@ -26,20 +26,20 @@ const { title, subtitle, cta } = Astro.props;
 		</div>
 
 		<div class="reveal delay-100">
-			<h1 class="text-5xl md:text-7xl font-display font-bold mb-6 leading-tight flex flex-col items-center">
+			<h1 class="text-4xl md:text-6xl lg:text-7xl font-display font-bold mb-6 leading-tight flex flex-col items-center">
 				<span class="text-white">{title.split('<br/>')[0]}</span>
 				<span class="text-gradient drop-shadow-[0_0_30px_rgba(0,242,255,0.2)]">{title.split('<br/>')[1]}</span>
 			</h1>
 		</div>
 
 		<div class="reveal delay-200">
-			<p class="text-xl md:text-2xl text-slate-400 max-w-3xl mx-auto mb-10 leading-relaxed font-medium">
+			<p class="text-lg md:text-xl lg:text-2xl text-slate-400 max-w-3xl mx-auto mb-10 leading-relaxed font-medium px-4">
 				{subtitle}
 			</p>
 		</div>
 
 		<div class="flex flex-col sm:flex-row gap-4 justify-center items-center reveal delay-300">
-			<a href="https://github.com/dbelyaeff/ssh-keys-manager/releases" class="btn-primary flex items-center gap-2">
+			<a href="https://github.com/dbelyaeff/ssh-keys-manager/releases" class="btn-primary flex items-center gap-2 w-full sm:w-auto justify-center">
 				<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
 				{cta}
 			</a>
@@ -47,9 +47,9 @@ const { title, subtitle, cta } = Astro.props;
 		</div>
 	</div>
 	
-	<div class="mt-20 max-w-5xl mx-auto px-6 relative">
+	<div class="mt-12 md:mt-20 max-w-5xl mx-auto px-6 relative reveal delay-500">
 		<div class="absolute inset-0 bg-electric/20 blur-[120px] rounded-full top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 -z-10"></div>
-		<div class="glass p-2 rounded-2xl shadow-2xl overflow-hidden float max-h-[450px]">
+		<div class="glass p-1.5 md:p-2 rounded-2xl shadow-2xl overflow-hidden float max-h-[250px] md:max-h-[450px]">
 			<img 
 				src="/img/hero.png" 
 				alt="SSH Keys Manager UI" 
@@ -63,31 +63,32 @@ const { title, subtitle, cta } = Astro.props;
 <script>
 	const container = document.getElementById('hero-icon-container');
 	const glow = document.getElementById('hero-icon-glow');
+	const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 	
-	document.addEventListener('mousemove', (e) => {
-		if (!container || !glow) return;
+	if (!isTouchDevice) {
+		document.addEventListener('mousemove', (e) => {
+			if (!container || !glow) return;
+			
+			const { clientX, clientY } = e;
+			const { innerWidth, innerHeight } = window;
+			
+			const rotationX = ((clientY / innerHeight) - 0.5) * -20;
+			const rotationY = ((clientX / innerWidth) - 0.5) * 20;
+			
+			container.style.transform = `perspective(1000px) rotateX(${rotationX}deg) rotateY(${rotationY}deg)`;
+			glow.style.transform = `translate(${rotationY * -0.5}px, ${rotationX * 0.5}px)`;
+		});
 		
-		const { clientX, clientY } = e;
-		const { innerWidth, innerHeight } = window;
-		
-		const rotationX = ((clientY / innerHeight) - 0.5) * -20;
-		const rotationY = ((clientX / innerWidth) - 0.5) * 20;
-		
-		container.style.transform = `perspective(1000px) rotateX(${rotationX}deg) rotateY(${rotationY}deg)`;
-		
-		// Move glow in slightly opposite direction for depth
-		glow.style.transform = `translate(${rotationY * -0.5}px, ${rotationX * 0.5}px)`;
-	});
-	
-	document.addEventListener('mouseleave', () => {
-		if (!container || !glow) return;
-		container.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg)`;
-		glow.style.transform = `translate(0, 0)`;
-	});
+		document.addEventListener('mouseleave', () => {
+			if (!container || !glow) return;
+			container.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg)`;
+			glow.style.transform = `translate(0, 0)`;
+		});
+	}
 
 	// Reveal Observer
 	const observerOptions = {
-		threshold: 0.1
+		threshold: 0.05
 	};
 
 	const observer = new IntersectionObserver((entries) => {

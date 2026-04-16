@@ -11,24 +11,24 @@ const { title, description, imgSrc } = Astro.props;
 <section class="py-32 bg-obsidian-light relative overflow-hidden">
 	<div class="absolute top-0 right-0 w-1/2 h-full bg-electric/5 -skew-x-12 translate-x-1/2"></div>
 	
-	<div class="max-w-7xl mx-auto px-6 flex flex-col lg:flex-row items-center gap-16">
+	<div class="max-w-7xl mx-auto px-6 flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
 		<div class="flex-1 space-y-8 relative z-10 text-center lg:text-left">
-			<h2 class="text-4xl md:text-5xl font-display font-bold leading-tight reveal">{title}</h2>
+			<h2 class="text-3xl md:text-5xl font-display font-bold leading-tight reveal">{title}</h2>
 			<div class="reveal delay-100">
-				<p class="text-lg text-slate-400 leading-relaxed font-medium">
+				<p class="text-base md:text-lg text-slate-400 leading-relaxed font-medium">
 					{description}
 				</p>
 			</div>
-			<div class="flex flex-wrap gap-4 justify-center lg:justify-start reveal delay-200">
-				<div class="glass px-4 py-2 rounded-lg text-sm font-mono border-electric/20 text-electric">mDNS Discovery</div>
-				<div class="glass px-4 py-2 rounded-lg text-sm font-mono border-electric/20 text-electric">AES-GCM Local Link</div>
-				<div class="glass px-4 py-2 rounded-lg text-sm font-mono border-electric/20 text-electric">PIN Auth</div>
+			<div class="flex flex-wrap gap-3 justify-center lg:justify-start reveal delay-200">
+				<div class="glass px-3 py-1.5 md:px-4 md:py-2 rounded-lg text-[10px] md:text-sm font-mono border-electric/20 text-electric uppercase tracking-wider">mDNS Discovery</div>
+				<div class="glass px-3 py-1.5 md:px-4 md:py-2 rounded-lg text-[10px] md:text-sm font-mono border-electric/20 text-electric uppercase tracking-wider">AES-GCM Local Link</div>
+				<div class="glass px-3 py-1.5 md:px-4 md:py-2 rounded-lg text-[10px] md:text-sm font-mono border-electric/20 text-electric uppercase tracking-wider">PIN Auth</div>
 			</div>
 		</div>
 		
-		<div class="flex-1 relative reveal delay-300">
+		<div class="flex-1 relative reveal delay-300 w-full max-w-lg lg:max-w-none">
 			<div class="absolute inset-0 bg-blue-500/20 blur-[100px] rounded-full"></div>
-			<img src={imgSrc} alt="P2P Sync Visualization" class="w-full relative z-10 rounded-2xl border border-white/5" />
+			<img src={imgSrc} alt="P2P Sync Visualization" class="w-full relative z-10 rounded-2xl border border-white/5 shadow-2xl" />
 		</div>
 	</div>
 </section>
