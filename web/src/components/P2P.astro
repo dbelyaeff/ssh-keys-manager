@@ -1,0 +1,32 @@
+---
+interface Props {
+	title: string;
+	description: string;
+	imgSrc: string;
+}
+
+const { title, description, imgSrc } = Astro.props;
+---
+
+<section class="py-32 bg-obsidian-light relative overflow-hidden">
+	<div class="absolute top-0 right-0 w-1/2 h-full bg-electric/5 -skew-x-12 translate-x-1/2"></div>
+	
+	<div class="max-w-7xl mx-auto px-6 flex flex-col lg:flex-row items-center gap-16">
+		<div class="flex-1 space-y-8 relative z-10 text-center lg:text-left">
+			<h2 class="text-4xl md:text-5xl font-display font-bold leading-tight">{title}</h2>
+			<p class="text-lg text-slate-400 leading-relaxed font-medium">
+				{description}
+			</p>
+			<div class="flex flex-wrap gap-4 justify-center lg:justify-start">
+				<div class="glass px-4 py-2 rounded-lg text-sm font-mono border-electric/20 text-electric">mDNS Discovery</div>
+				<div class="glass px-4 py-2 rounded-lg text-sm font-mono border-electric/20 text-electric">AES-GCM Local Link</div>
+				<div class="glass px-4 py-2 rounded-lg text-sm font-mono border-electric/20 text-electric">PIN Auth</div>
+			</div>
+		</div>
+		
+		<div class="flex-1 relative">
+			<div class="absolute inset-0 bg-blue-500/20 blur-[100px] rounded-full"></div>
+			<img src={imgSrc} alt="P2P Sync Visualization" class="w-full relative z-10 rounded-2xl border border-white/5" />
+		</div>
+	</div>
+</section>

@@ -1,0 +1,79 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Navbar from '../../components/Navbar.astro';
+import Hero from '../../components/Hero.astro';
+import Features from '../../components/Features.astro';
+import P2P from '../../components/P2P.astro';
+import Footer from '../../components/Footer.astro';
+
+const icons = {
+	key: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15.5 7.5 2.3 2.3a1 1 0 0 0 1.4 0l2.1-2.1a1 1 0 0 0 0-1.4L19 4.3a1 1 0 0 0-1.4 0l-2.1 2.1a1 1 0 0 0 0 1.4Z"/><path d="m15.5 7.5-3 3"/><path d="m13.5 15 2.5 2.5a5 5 0 1 1-7-7l11-11"/><path d="m11.5 13-3 3"/></svg>`,
+	shield: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`,
+	monitor: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>`,
+	radio: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M7.76 7.76a6 6 0 0 0 0 8.49"/><path d="M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>`,
+	terminal: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" x2="20" y1="19" y2="19"/></svg>`,
+	lock: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`
+};
+
+const features = [
+	{
+		title: "Безопасное хранилище",
+		description: "Шифрование AES-256-GCM с использованием Argon2 для производных ключей. Ваши данные никогда не покидают устройство в открытом виде.",
+		icon: icons.shield
+	},
+	{
+		title: "Кроссплатформенность + WSL",
+		description: "Нативная скорость на macOS, Linux и Windows. Бесшовная синхронизация ключей напрямую в подсистемы WSL.",
+		icon: icons.monitor
+	},
+	{
+		title: "Умное SSH-управление",
+		description: "Автоматическая проверка доступности хостов и установка ключей через ssh-copy-id в один клик.",
+		icon: icons.key
+	},
+	{
+		title: "Интеграция с терминалом",
+		description: "Полная поддержка Terminal.app, iTerm2 и Warp. Запускайте соединения именно в том терминале, который вам удобен.",
+		icon: icons.terminal
+	},
+	{
+		title: "Приватность превыше всего",
+		description: "Local-first архитектура. Никаких трекеров, внешних серверов или облачной телеметрии. Только вы и ваши ключи.",
+		icon: icons.lock
+	},
+	{
+		title: "Синхронизация P2P",
+		description: "Протокол mDNS находит устройства в локальной сети для мгновенной прямой передачи данных через зашифрованные потоки.",
+		icon: icons.radio
+	}
+];
+---
+
+<Layout 
+	title="SSH Keys Manager | Ваш надежный сейф для ключей"
+	description="Современное, безопасное и нативное приложение для управления SSH-ключами и серверами. Экспорт, синхронизация и защита вашего окружения."
+	lang="ru"
+>
+	<Navbar lang="ru" />
+	
+	<main>
+		<Hero 
+			title="Ваш идеальный сейф<br/>для SSH-ключей"
+			subtitle="Управляйте, синхронизируйте и защищайте ваше SSH-окружение на macOS, Windows и Linux с нативной скоростью и бескомпромиссной безопасностью."
+			cta="Скачать версию v1.1.3"
+		/>
+		
+		<Features 
+			title={"Создан для\nбезопасности и скорости"}
+			features={features}
+		/>
+		
+		<P2P 
+			imgSrc={`${import.meta.env.BASE_URL}/img/p2p_abstract.png`}
+			title="Мгновенная P2P синхронизация"
+			description="Переезжаете на новую машину? Прямая передача данных в локальной сети использует шифрованные TCP-потоки и PIN-код для переноса всей конфигурации за секунды. Облака не требуются."
+		/>
+	</main>
+	
+	<Footer />
+</Layout>

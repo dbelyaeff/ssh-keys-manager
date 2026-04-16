@@ -1,0 +1,21 @@
+---
+const currentYear = new Date().getFullYear();
+---
+
+<footer class="py-20 border-t border-white/5">
+	<div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-10">
+		<div class="flex flex-col items-center md:items-start gap-3">
+			<div class="flex items-center gap-2">
+				<div class="w-6 h-6 rounded bg-white/10 flex items-center justify-center font-bold text-xs">S</div>
+				<span class="font-display font-bold">SSH Keys Manager</span>
+			</div>
+			<p class="text-sm text-slate-500 font-medium">© {currentYear} SSH Keys Manager. Open Source under MIT License.</p>
+		</div>
+		
+		<div class="flex gap-10 text-sm font-medium text-slate-400">
+			<a href="https://github.com/dbelyaeff/ssh-keys-manager" class="hover:text-electric transition-colors">GitHub</a>
+			<a href="https://github.com/dbelyaeff/ssh-keys-manager/releases" class="hover:text-electric transition-colors">Releases</a>
+			<a href="https://github.com/dbelyaeff/ssh-keys-manager/blob/main/CHANGELOG.md" class="hover:text-electric transition-colors">Changelog</a>
+		</div>
+	</div>
+</footer>

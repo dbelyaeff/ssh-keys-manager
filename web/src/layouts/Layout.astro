@@ -1,0 +1,49 @@
+---
+import '../styles/global.css';
+
+interface Props {
+	title: string;
+	description: string;
+	lang: 'en' | 'ru';
+}
+
+const { title, description, lang } = Astro.props;
+---
+
+<!doctype html>
+<html lang={lang}>
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width" />
+		<link rel="icon" type="image/x-icon" href={`${import.meta.env.BASE_URL}/favicon.ico`}>
+		<link rel="icon" type="image/png" sizes="16x16" href={`${import.meta.env.BASE_URL}/favicon-16x16.png`}>
+		<link rel="icon" type="image/png" sizes="32x32" href={`${import.meta.env.BASE_URL}/favicon-32x32.png`}>
+		<link rel="apple-touch-icon" sizes="180x180" href={`${import.meta.env.BASE_URL}/apple-touch-icon.png`}>
+		<link rel="icon" type="image/png" sizes="192x192" href={`${import.meta.env.BASE_URL}/android-chrome-192x192.png`}>
+		<link rel="icon" type="image/png" sizes="512x512" href={`${import.meta.env.BASE_URL}/android-chrome-512x512.png`}>
+		<meta name="theme-color" content="#ffffff">
+		<meta name="generator" content={Astro.generator} />
+		<title>{title}</title>
+		<meta name="description" content={description} />
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@600;700&display=swap" rel="stylesheet">
+	</head>
+	<body class="selection:bg-electric selection:text-obsidian">
+		<slot />
+	</body>
+</html>
+
+<style is:global>
+	:root {
+		--accent: 136, 58, 234;
+		--accent-light: 224, 204, 250;
+		--accent-dark: 49, 10, 101;
+		--accent-gradient: linear-gradient(
+			45deg,
+			rgb(var(--accent)),
+			rgb(var(--accent-light)) 30%,
+			white 60%
+		);
+	}
+</style>
