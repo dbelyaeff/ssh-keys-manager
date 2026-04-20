@@ -18,6 +18,14 @@
 
 ---
 
+## 🚀 Premium Landing Page
+The project now features a high-fidelity, interactive **3D Landing Page** built with Astro and Framer Motion:
+- **MacBook Pro 3D Scroll**: Experience the app's UI within a realistic, pixel-perfect 3D MacBook Pro that opens as you scroll.
+- **Interactive Parallax**: 3D tilt effects on product visualizations that respond to your mouse movement.
+- **Micro-animations**: Smooth, spring-physics transitions and spotlight glow effects throughout the page.
+
+---
+
 ## ✨ Features
 
 ### 🔑 SSH Key Management
@@ -74,6 +82,9 @@
 | **Toast notifications** | Non-intrusive feedback via Sonner |
 | **Modal dialogs** | All creation flows (keys, servers) use clean modal windows |
 | **Theme-aware** | Full dark mode / light mode support |
+| **3D MacBook Scroll** | High-fidelity interactive laptop animation on the landing page |
+| **Parallax Tilt** | Context-aware 3D spatial interaction for feature visualizations |
+| **Spotlight Glow** | Dynamic mouse-tracking glow effects for premium aesthetics |
 
 ---
 

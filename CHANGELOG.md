@@ -5,6 +5,21 @@ All notable changes to SSH Keys Manager will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-04-20
+
+### Added
+- **Premium 3D Landing Page**: Completely redesigned web landing page with high-fidelity animations.
+- **MacBook Pro Scroll Component**: Pixel-perfect 3D MacBook Pro render with synchronized scroll-to-open animation, custom keyboard backlight, and dual-hinge simulation.
+- **3D Parallax Interaction**: Interactive 3D tilt and spotlight glow effects for the P2P synchronization showcase.
+- **Mobile Optimization**: Responsive scroll logic for web (reduced scroll depth, adaptive scaling, and optimized layout for mobile devices).
+- **UI Reliability**: Refactored call-to-action buttons to use native anchor tags for rock-solid link behavior across all platforms.
+- **Global Interaction Polish**: Enforced pointer cursors across all interactive elements and added subtle spring-physics transitions.
+
+### Fixed
+- Runtime crash in GlowCard component due to missing utility imports.
+- Asymmetric border clipping in P2P synchronization visualization.
+- Landing page navigation logic for better sticky header behavior.
+
 ## [1.1.3] - 2026-04-15
 
 ### Added
@@ -145,6 +160,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Toast notifications via Sonner
 - Modal dialogs for all creation flows
 - Full dark mode / light mode support
+
+[1.2.0]: https://github.com/dbelyaeff/ssh-keys-manager/releases/tag/v1.2.0
 
 [1.1.2]: https://github.com/dbelyaeff/ssh-keys-manager/releases/tag/v1.1.2
 [1.1.1]: https://github.com/dbelyaeff/ssh-keys-manager/releases/tag/v1.1.1
