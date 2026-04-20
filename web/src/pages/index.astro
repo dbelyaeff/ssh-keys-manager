@@ -2,6 +2,7 @@
 import Layout from '../layouts/Layout.astro';
 import Navbar from '../components/Navbar.astro';
 import Hero from '../components/Hero.astro';
+import { AppShowcase } from '../components/AppShowcase';
 import Features from '../components/Features.astro';
 import P2P from '../components/P2P.astro';
 import Footer from '../components/Footer.astro';
@@ -19,32 +20,32 @@ const features = [
 	{
 		title: "Безопасное хранилище",
 		description: "Шифрование AES-256-GCM с использованием Argon2 для производных ключей. Ваши данные никогда не покидают устройство в открытом виде.",
-		icon: icons.shield
+		icon: "shield"
 	},
 	{
 		title: "Кроссплатформенность + WSL",
 		description: "Нативная скорость на macOS, Linux и Windows. Бесшовная синхронизация ключей напрямую в подсистемы WSL.",
-		icon: icons.monitor
+		icon: "monitor"
 	},
 	{
 		title: "Умное SSH-управление",
 		description: "Автоматическая проверка доступности хостов и установка ключей через ssh-copy-id в один клик.",
-		icon: icons.key
+		icon: "key"
 	},
 	{
 		title: "Интеграция с терминалом",
 		description: "Полная поддержка Terminal.app, iTerm2 и Warp. Запускайте соединения именно в том терминале, который вам удобен.",
-		icon: icons.terminal
+		icon: "terminal"
 	},
 	{
 		title: "Приватность превыше всего",
 		description: "Local-first архитектура. Никаких трекеров, внешних серверов или облачной телеметрии. Только вы и ваши ключи.",
-		icon: icons.lock
+		icon: "lock"
 	},
 	{
 		title: "Синхронизация P2P",
 		description: "Протокол mDNS находит устройства в локальной сети для мгновенной прямой передачи данных через зашифрованные потоки.",
-		icon: icons.radio
+		icon: "radio"
 	}
 ];
 ---
@@ -61,6 +62,13 @@ const features = [
 			title="Ваш идеальный сейф<br/>для SSH-ключей"
 			subtitle="Управляйте, синхронизируйте и защищайте ваше SSH-окружение на macOS, Windows и Linux с нативной скоростью и бескомпромиссной безопасностью."
 			cta="Скачать версию v1.2.0"
+		/>
+
+		<AppShowcase 
+			client:load 
+			title="Ваш терминал,"
+			highlightedTitle="Ваши правила"
+			imgSrc="/img/hero-ru.png"
 		/>
 		
 		<Features 

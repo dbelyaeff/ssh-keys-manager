@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useKeysStore } from "@/store/keysStore";
+import { useSettingsStore } from "@/store/settingsStore";
 import { generateKey } from "@/lib/tauri";
+import { t } from "@/lib/i18n";
 import { toast } from "sonner";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
@@ -27,6 +29,7 @@ const KEY_BITS: Record<string, number[]> = {
 
 export function KeyGenerateModal({ open, onOpenChange, onGenerated }: Props) {
   const { loadKeys, selectKey } = useKeysStore();
+  const language = useSettingsStore((s) => s.language);
   const [name, setName] = useState("");
   const [keyType, setKeyType] = useState("ed25519");
   const [bits, setBits] = useState(4096);
@@ -44,11 +47,11 @@ export function KeyGenerateModal({ open, onOpenChange, onGenerated }: Props) {
 
   const handleGenerate = async () => {
     if (!name.trim()) {
-      toast.error("Укажите имя файла ключа");
+      toast.error(t(language, "keys.noNameError") || "Укажите имя файла ключа");
       return;
     }
     setGenerating(true);
-    const toastId = toast.loading("Генерирую ключ...");
+    const toastId = toast.loading(t(language, "keys.generating"));
     try {
       await generateKey({
         name: name.trim(),
@@ -58,7 +61,7 @@ export function KeyGenerateModal({ open, onOpenChange, onGenerated }: Props) {
         passphrase,
       });
       toast.dismiss(toastId);
-      toast.success(`Ключ «${name.trim()}» создан`);
+      toast.success(t(language, "keys.genSuccess", { name: name.trim() }));
       await loadKeys();
       await selectKey(name.trim());
       onGenerated?.(name.trim());
@@ -68,7 +71,7 @@ export function KeyGenerateModal({ open, onOpenChange, onGenerated }: Props) {
       setPassphrase("");
     } catch (e) {
       toast.dismiss(toastId);
-      toast.error(`Ошибка генерации: ${e}`);
+      toast.error(`${t(language, "common.error")}: ${e}`);
     } finally {
       setGenerating(false);
     }
@@ -78,24 +81,24 @@ export function KeyGenerateModal({ open, onOpenChange, onGenerated }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Новый SSH-ключ</DialogTitle>
-          <DialogDescription>Сгенерировать пару ключей и сохранить в ~/.ssh/</DialogDescription>
+          <DialogTitle>{t(language, "keys.newKeyTitle")}</DialogTitle>
+          <DialogDescription>{t(language, "keys.newKeyDesc")}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-2">
           <div className="space-y-1.5">
-            <Label>Имя файла</Label>
+            <Label>{t(language, "keys.fileName")}</Label>
             <Input
               placeholder="id_ed25519_myserver"
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
-            <p className="text-xs text-muted-foreground">Будет сохранён как ~/.ssh/{name || "имя_ключа"}</p>
+            <p className="text-xs text-muted-foreground">{t(language, "keys.fileHint", { name: name || "..." })}</p>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label>Тип ключа</Label>
+              <Label>{t(language, "keys.keyType")}</Label>
               <Select value={keyType} onValueChange={handleKeyTypeChange}>
                 <SelectTrigger>
                   <SelectValue />
@@ -109,14 +112,14 @@ export function KeyGenerateModal({ open, onOpenChange, onGenerated }: Props) {
             </div>
             {availableBits.length > 0 && (
               <div className="space-y-1.5">
-                <Label>Длина ключа</Label>
+                <Label>{t(language, "keys.keyBits")}</Label>
                 <Select value={String(bits)} onValueChange={(v) => setBits(Number(v))}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     {availableBits.map((b) => (
-                      <SelectItem key={b} value={String(b)}>{b} бит</SelectItem>
+                      <SelectItem key={b} value={String(b)}>{t(language, "keys.bitsCount", { n: String(b) })}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -125,7 +128,7 @@ export function KeyGenerateModal({ open, onOpenChange, onGenerated }: Props) {
           </div>
 
           <div className="space-y-1.5">
-            <Label>Комментарий <span className="text-muted-foreground">(необязательно)</span></Label>
+            <Label>{t(language, "keys.comment")} <span className="text-muted-foreground">({t(language, "common.optional")})</span></Label>
             <Input
               placeholder="user@hostname"
               value={comment}
@@ -134,10 +137,10 @@ export function KeyGenerateModal({ open, onOpenChange, onGenerated }: Props) {
           </div>
 
           <div className="space-y-1.5">
-            <Label>Пассфраза <span className="text-muted-foreground">(необязательно)</span></Label>
+            <Label>{t(language, "keys.passphrase")} <span className="text-muted-foreground">({t(language, "common.optional")})</span></Label>
             <Input
               type="password"
-              placeholder="Оставьте пустым для без пароля"
+              placeholder={t(language, "keys.passphraseHint")}
               value={passphrase}
               onChange={(e) => setPassphrase(e.target.value)}
             />
@@ -145,9 +148,9 @@ export function KeyGenerateModal({ open, onOpenChange, onGenerated }: Props) {
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Отмена</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>{t(language, "common.cancel")}</Button>
           <Button onClick={handleGenerate} disabled={generating}>
-            {generating ? "Генерирую..." : "Сгенерировать"}
+            {generating ? t(language, "keys.generating") : t(language, "keys.generate")}
           </Button>
         </DialogFooter>
       </DialogContent>

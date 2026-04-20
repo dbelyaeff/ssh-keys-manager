@@ -1,4 +1,6 @@
 ---
+import { P2PImage } from './P2PImage';
+
 interface Props {
 	title: string;
 	description: string;
@@ -27,8 +29,7 @@ const { title, description, imgSrc } = Astro.props;
 		</div>
 		
 		<div class="flex-1 relative reveal delay-300 w-full max-w-lg lg:max-w-none">
-			<div class="absolute inset-0 bg-blue-500/20 blur-[100px] rounded-full"></div>
-			<img src={imgSrc} alt="P2P Sync Visualization" class="w-full relative z-10 rounded-2xl border border-white/5 shadow-2xl" />
+			<P2PImage client:visible imgSrc={imgSrc} />
 		</div>
 	</div>
 </section>

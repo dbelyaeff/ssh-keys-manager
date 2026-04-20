@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useServersStore } from "@/store/serversStore";
 import { useKeysStore } from "@/store/keysStore";
+import { useSettingsStore } from "@/store/settingsStore";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Plus, Server, Trash2, Download } from "lucide-react";
@@ -10,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { deleteServer } from "@/lib/tauri";
 import { toast } from "sonner";
 import { useUIStore } from "@/store/uiStore";
+import { t } from "@/lib/i18n";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,6 +28,7 @@ export function ServerList() {
   const { servers, selectedServer, selectServer, loadServers, checkedServers, setCheckedServers } = useServersStore();
   const { checkedKeys } = useKeysStore();
   const { openExportDialog } = useUIStore();
+  const language = useSettingsStore((s) => s.language);
   const [createOpen, setCreateOpen] = useState(false);
   const [lastCheckedIndex, setLastCheckedIndex] = useState<number | null>(null);
 
@@ -54,10 +57,10 @@ export function ServerList() {
       try {
         await deleteServer(host);
       } catch (e) {
-        toast.error(`Ошибка при удалении ${host}: ${e}`);
+        toast.error(`${t(language, "common.error")} ${host}: ${e}`);
       }
     }
-    toast.success("Выбранные серверы удалены");
+    toast.success(t(language, "servers.deleted", { name: "..." }));
     setCheckedServers([]);
     loadServers();
   };
@@ -77,15 +80,16 @@ export function ServerList() {
           disabled={servers.length === 0}
           className="mr-2"
         />
-        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Серверы</p>
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            {t(language, "servers.sidebarTitle")}
+        </p>
       </div>
       <ScrollArea className="flex-1">
         <div className="p-2 space-y-0.5">
           {servers.length === 0 && (
             <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
               <Server className="h-8 w-8 mb-2 opacity-30" />
-              <p className="text-sm">Серверов не найдено</p>
-              <p className="text-xs mt-1">Нажмите «+» чтобы добавить</p>
+              <p className="text-sm">{t(language, "common.noResults")}</p>
             </div>
           )}
           {servers.map((srv, idx) => (
@@ -114,7 +118,7 @@ export function ServerList() {
                 onClick={() => selectServer(srv.host)}
                 className="flex-1 flex flex-col py-2 text-left text-sm"
               >
-                <span className="font-medium truncate">{srv.host || "Новый сервер"}</span>
+                <span className="font-medium truncate">{srv.host || t(language, "servers.newServer")}</span>
                 <span className="text-xs text-muted-foreground truncate">{srv.hostname}</span>
               </button>
             </div>
@@ -122,7 +126,7 @@ export function ServerList() {
         </div>
       </ScrollArea>
       <div className="p-2 border-t flex items-center justify-between">
-        <Button variant="ghost" size="sm" className="px-2" onClick={() => setCreateOpen(true)}>
+        <Button variant="ghost" size="sm" className="px-2" onClick={() => setCreateOpen(true)} title={t(language, "servers.newServer")}>
           <Plus className="h-4 w-4" />
         </Button>
         {checkedServers.length > 0 && (
@@ -131,7 +135,7 @@ export function ServerList() {
               variant="ghost"
               size="sm"
               className="px-2"
-              title="Экспортировать выбранные"
+              title={t(language, "exportTab.exportBtn")}
               onClick={() => openExportDialog(checkedKeys, checkedServers)}
             >
               <Download className="h-4 w-4" />
@@ -148,15 +152,15 @@ export function ServerList() {
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Удалить выбранные серверы?</AlertDialogTitle>
+                  <AlertDialogTitle>{t(language, "servers.deleteTitle", { name: "..." })}</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Выбрано серверов: {checkedServers.length}. Это действие нельзя отменить.
+                    {t(language, "servers.deleteDesc")}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Отмена</AlertDialogCancel>
+                  <AlertDialogCancel>{t(language, "common.cancel")}</AlertDialogCancel>
                   <AlertDialogAction onClick={handleBulkDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                    Удалить
+                    {t(language, "common.delete")}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>

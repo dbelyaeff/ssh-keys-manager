@@ -2,6 +2,7 @@
 import Layout from '../../layouts/Layout.astro';
 import Navbar from '../../components/Navbar.astro';
 import Hero from '../../components/Hero.astro';
+import { AppShowcase } from '../../components/AppShowcase';
 import Features from '../../components/Features.astro';
 import P2P from '../../components/P2P.astro';
 import Footer from '../../components/Footer.astro';
@@ -61,6 +62,13 @@ const features = [
 			title="The Ultimate Identity<br/>Vault for SSH"
 			subtitle="Manage, synchronize, and protect your SSH environment across macOS, Windows, and Linux with native speed and uncompromising security."
 			cta="Download Universal v1.2.0"
+		/>
+
+		<AppShowcase 
+			client:load 
+			title="Your terminal,"
+			highlightedTitle="Your rules"
+			imgSrc="/img/hero-en.png"
 		/>
 		
 		<Features 

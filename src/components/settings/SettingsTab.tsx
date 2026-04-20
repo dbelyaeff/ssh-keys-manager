@@ -44,9 +44,9 @@ export function SettingsTab() {
         setSyncing(true);
         try {
             await syncToWsl(wslDistro);
-            toast.success(t(language, "settingsTab.wslSyncSuccess") || "Синхронизировано с WSL");
+            toast.success(t(language, "settingsTab.wslSyncSuccess"));
         } catch (err) {
-            toast.error(`Sync error: ${err}`);
+            toast.error(`${t(language, "common.error")}: ${err}`);
         } finally {
             setSyncing(false);
         }
@@ -112,7 +112,7 @@ export function SettingsTab() {
 
                     <div className="space-y-3">
                         <Label className="uppercase text-xs font-semibold text-muted-foreground tracking-wider flex items-center gap-2">
-                            <Terminal className="w-4 h-4" /> {t(language, "settingsTab.terminal") || "Терминал по умолчанию"}
+                            <Terminal className="w-4 h-4" /> {t(language, "settingsTab.terminal")}
                         </Label>
                         <Select value={terminal} onValueChange={(val) => setTerminal(val as TerminalApp)}>
                             <SelectTrigger className="w-full sm:w-64">
@@ -124,7 +124,7 @@ export function SettingsTab() {
                                 {installedTerminals.includes("Warp.app") && <SelectItem value="Warp.app">Warp</SelectItem>}
                             </SelectContent>
                         </Select>
-                        <p className="text-xs text-muted-foreground">Используется при открытии соединения (Подключиться).</p>
+                        <p className="text-xs text-muted-foreground">{t(language, "settingsTab.terminalHint")}</p>
                     </div>
 
                     {isWindows && (

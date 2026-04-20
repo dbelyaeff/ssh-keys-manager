@@ -1,4 +1,6 @@
 ---
+import { FeatureCard } from './FeatureCard';
+
 interface Feature {
 	title: string;
 	description: string;
@@ -19,12 +21,14 @@ const { title, features } = Astro.props;
 		
 		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
 			{features.map((feature, index) => (
-				<div class={`glass p-6 md:p-8 rounded-2xl hover:border-electric/40 transition-all duration-300 group hover:-translate-y-2 reveal delay-${(index + 1) * 100}`}>
-					<div class="w-12 h-12 bg-electric/10 rounded-xl flex items-center justify-center mb-6 text-electric group-hover:scale-110 transition-transform" set:html={feature.icon} />
-					<h3 class="text-lg md:text-xl font-bold mb-4 font-display">{feature.title}</h3>
-					<p class="text-sm md:text-base text-slate-400 leading-relaxed font-medium">
-						{feature.description}
-					</p>
+				<div class={`reveal delay-${(index + 1) * 100}`}>
+					<FeatureCard 
+						client:visible
+						title={feature.title}
+						description={feature.description}
+						iconName={feature.icon}
+						index={index}
+					/>
 				</div>
 			))}
 		</div>

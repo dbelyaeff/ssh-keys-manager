@@ -67,7 +67,7 @@ export function ExportImportTab() {
         multiple: false,
       });
     } catch (e) {
-      toast.error(`Ошибка открытия диалога: ${e}`);
+      toast.error(`${t(language, "common.error")}: ${e}`);
       return;
     }
     if (!file || typeof file !== "string") return;
@@ -85,7 +85,7 @@ export function ExportImportTab() {
         setNeedPassword(true);
         setImportOpen(true);
       } else {
-        toast.error(`Ошибка чтения архива: ${e}`);
+        toast.error(`${t(language, "common.error")}: ${e}`);
       }
     }
   };
@@ -98,23 +98,23 @@ export function ExportImportTab() {
       setImportSelServers(result.servers);
       setNeedPassword(false);
     } catch (e) {
-      toast.error(`Неверный пароль или ошибка: ${e}`);
+      toast.error(`${t(language, "common.error")}: ${e}`);
     }
   };
 
   const handleApplyImport = async () => {
     setImporting(true);
-    const id = toast.loading("Импортирую...");
+    const id = toast.loading(t(language, "servers.installing"));
     try {
       await applyImport(importPath, importPassword || null, importSelKeys, importSelServers, overwriteExisting);
       toast.dismiss(id);
-      toast.success("Импорт завершён");
+      toast.success(t(language, "common.success"));
       setImportOpen(false);
       setImportResult(null);
       setImportPassword("");
     } catch (e) {
       toast.dismiss(id);
-      toast.error(`Ошибка импорта: ${e}`);
+      toast.error(`${t(language, "common.error")}: ${e}`);
     } finally {
       setImporting(false);
     }
@@ -344,7 +344,7 @@ export function ExportImportTab() {
                 <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
                   {peers.length === 0
                     ? <span className="flex items-center gap-1.5"><Loader2 className="h-3 w-3 animate-spin text-muted-foreground" /> {t(language, "exportTab.p2pSearching")}</span>
-                    : `${peers.length} ${peers.length === 1 ? (t(language, "exportTab.deviceFound") || 'device') : (t(language, "exportTab.devicesFound") || 'devices')}`
+                    : `${peers.length} ${peers.length === 1 ? t(language, "exportTab.deviceFound") : t(language, "exportTab.devicesFound")}`
                   }
                 </Label>
               </div>
@@ -395,40 +395,44 @@ export function ExportImportTab() {
       <Dialog open={importOpen} onOpenChange={setImportOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Импорт данных</DialogTitle>
+            <DialogTitle>{t(language, "exportTab.importTitle")}</DialogTitle>
             <DialogDescription>{importPath}</DialogDescription>
           </DialogHeader>
           {needPassword && !importResult ? (
             <div className="space-y-3 py-2">
-              <Label>Пароль архива</Label>
+              <Label>{t(language, "servers.passwordLabel")}</Label>
               <Input type="password" value={importPassword} onChange={(e) => setImportPassword(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") handleImportWithPassword(); }} />
-              <Button onClick={handleImportWithPassword} className="w-full">Расшифровать</Button>
+              <Button onClick={handleImportWithPassword} className="w-full">{t(language, "common.save")}</Button>
             </div>
           ) : importResult ? (
             <div className="space-y-4 py-2 max-h-[50vh] overflow-y-auto">
               {importResult.keys.length > 0 && (
                 <div className="space-y-2">
-                  <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">SSH-ключи</Label>
+                  <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">{t(language, "keys.sidebarTitle")}</Label>
                   {importResult.keys.map((k) => (
                     <div key={k} className="flex items-center gap-2">
                       <Checkbox checked={importSelKeys.includes(k)} onCheckedChange={() =>
                         setImportSelKeys((prev) => prev.includes(k) ? prev.filter((x) => x !== k) : [...prev, k])
                       } />
-                      <label className="text-sm">{k}</label>
+                      <label className="text-sm cursor-pointer" onClick={() =>
+                        setImportSelKeys((prev) => prev.includes(k) ? prev.filter((x) => x !== k) : [...prev, k])
+                      }>{k}</label>
                     </div>
                   ))}
                 </div>
               )}
               {importResult.servers.length > 0 && (
                 <div className="space-y-2">
-                  <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Серверы</Label>
+                  <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">{t(language, "servers.sidebarTitle")}</Label>
                   {importResult.servers.map((s) => (
                     <div key={s} className="flex items-center gap-2">
                       <Checkbox checked={importSelServers.includes(s)} onCheckedChange={() =>
                         setImportSelServers((prev) => prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s])
                       } />
-                      <label className="text-sm">{s}</label>
+                      <label className="text-sm cursor-pointer" onClick={() =>
+                        setImportSelServers((prev) => prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s])
+                      }>{s}</label>
                     </div>
                   ))}
                 </div>
@@ -450,9 +454,9 @@ export function ExportImportTab() {
           )}
           {importResult && (
             <DialogFooter>
-              <Button variant="outline" onClick={() => setImportOpen(false)}>Отмена</Button>
+              <Button variant="outline" onClick={() => setImportOpen(false)}>{t(language, "common.cancel")}</Button>
               <Button onClick={handleApplyImport} disabled={importing}>
-                {importing ? "Импортирую..." : "Импортировать выбранное"}
+                {importing ? t(language, "servers.installing") : t(language, "exportTab.importBtn")}
               </Button>
             </DialogFooter>
           )}
@@ -484,12 +488,7 @@ export function ExportImportTab() {
             <div className="space-y-4 py-2 max-h-[50vh] overflow-y-auto">
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">SSH-ключи</Label>
-                  <button className="text-xs text-primary" onClick={() =>
-                    setP2pSelKeys(p2pSelKeys.length === keys.length ? [] : keys.map((k) => k.name))
-                  }>
-                    {p2pSelKeys.length === keys.length ? "Снять все" : "Выбрать все"}
-                  </button>
+                  <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">{t(language, "keys.sidebarTitle")}</Label>
                 </div>
                 {keys.map((k) => (
                   <div key={k.name} className="flex items-center gap-2">
@@ -508,12 +507,7 @@ export function ExportImportTab() {
               <Separator />
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Серверы</Label>
-                  <button className="text-xs text-primary" onClick={() =>
-                    setP2pSelServers(p2pSelServers.length === servers.length ? [] : servers.map((s) => s.host))
-                  }>
-                    {p2pSelServers.length === servers.length ? "Снять все" : "Выбрать все"}
-                  </button>
+                  <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">{t(language, "servers.sidebarTitle")}</Label>
                 </div>
                 {servers.map((s) => (
                   <div key={s.host} className="flex items-center gap-2">
@@ -534,7 +528,7 @@ export function ExportImportTab() {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setSendOpen(false)}>
-              {sentPin ? "OK" : "Отмена"}
+              {sentPin ? "OK" : t(language, "common.cancel")}
             </Button>
             {!sentPin && (
               <Button onClick={handleSendData} disabled={sending || (!p2pSelKeys.length && !p2pSelServers.length)}>

@@ -15,6 +15,10 @@
     @apply bg-obsidian text-slate-100 font-body antialiased;
     background-image: radial-gradient(circle at 50% -20%, #1e1e2e 0%, transparent 60%);
   }
+
+  button, a {
+    @apply cursor-pointer;
+  }
 }
 
 @utility glass {

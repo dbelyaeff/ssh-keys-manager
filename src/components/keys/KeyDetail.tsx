@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useKeysStore } from "@/store/keysStore";
+import { useSettingsStore } from "@/store/settingsStore";
 import { saveKey, deleteKey } from "@/lib/tauri";
+import { t } from "@/lib/i18n";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -18,6 +20,7 @@ import { Copy, Eye, EyeOff, Save, Trash2, KeyRound } from "lucide-react";
 
 export function KeyDetail() {
   const { keys, selectedKey, keyContent, loadKeys, selectKey } = useKeysStore();
+  const language = useSettingsStore((s) => s.language);
   const key = keys.find((k) => k.name === selectedKey);
 
   const [privateContent, setPrivateContent] = useState("");
@@ -35,24 +38,24 @@ export function KeyDetail() {
     return (
       <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
         <KeyRound className="h-12 w-12 mb-3 opacity-20" />
-        <p className="text-sm">Выберите ключ из списка</p>
+        <p className="text-sm">{t(language, "keys.selectPrompt")}</p>
       </div>
     );
   }
 
   const handleCopy = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
-    toast.success(`${label} скопирован`);
+    toast.success(`${label} ${t(language, "common.copied")}`);
   };
 
   const handleSave = async () => {
     setSaving(true);
     try {
       await saveKey(key.name, privateContent, publicContent);
-      toast.success("Ключ сохранён");
+      toast.success(t(language, "keys.saved"));
       await loadKeys();
     } catch (e) {
-      toast.error(`Ошибка сохранения: ${e}`);
+      toast.error(`${t(language, "common.error")}: ${e}`);
     } finally {
       setSaving(false);
     }
@@ -61,12 +64,12 @@ export function KeyDetail() {
   const handleDelete = async () => {
     try {
       await deleteKey(key.name);
-      toast.success(`Ключ «${key.name}» удалён`);
+      toast.success(t(language, "keys.deleted", { name: key.name }));
       await loadKeys();
       const { keys: newKeys } = useKeysStore.getState();
       if (newKeys.length > 0) selectKey(newKeys[0].name);
     } catch (e) {
-      toast.error(`Ошибка удаления: ${e}`);
+      toast.error(`${t(language, "common.error")}: ${e}`);
     }
   };
 
@@ -82,14 +85,16 @@ export function KeyDetail() {
         {/* Public Key */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Публичный ключ</Label>
+            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              {t(language, "keys.publicKey")}
+            </Label>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleCopy(publicContent, "Публичный ключ")}>
+                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleCopy(publicContent, t(language, "keys.publicKey"))}>
                   <Copy className="h-3.5 w-3.5" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Копировать</TooltipContent>
+              <TooltipContent>{t(language, "common.copy")}</TooltipContent>
             </Tooltip>
           </div>
           <Textarea
@@ -105,7 +110,9 @@ export function KeyDetail() {
         {/* Private Key */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Приватный ключ</Label>
+            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              {t(language, "keys.privateKey")}
+            </Label>
             <div className="flex gap-1">
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -113,15 +120,15 @@ export function KeyDetail() {
                     {showPrivate ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>{showPrivate ? "Скрыть" : "Показать"}</TooltipContent>
+                <TooltipContent>{showPrivate ? t(language, "keys.hide") : t(language, "keys.show")}</TooltipContent>
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleCopy(privateContent, "Приватный ключ")}>
+                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleCopy(privateContent, t(language, "keys.privateKey"))}>
                     <Copy className="h-3.5 w-3.5" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>Копировать</TooltipContent>
+                <TooltipContent>{t(language, "common.copy")}</TooltipContent>
               </Tooltip>
             </div>
           </div>
@@ -136,7 +143,9 @@ export function KeyDetail() {
 
         {/* Comment */}
         <div className="space-y-2">
-          <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Комментарий</Label>
+          <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            {t(language, "keys.comment")}
+          </Label>
           <Input
             value={key.comment}
             readOnly
@@ -151,27 +160,29 @@ export function KeyDetail() {
           <AlertDialogTrigger asChild>
             <Button variant="ghost" size="sm" className="group text-muted-foreground/50 hover:bg-destructive hover:text-destructive-foreground transition-all duration-300 overflow-hidden">
               <Trash2 className="h-4 w-4 shrink-0 transition-transform group-hover:scale-110" />
-              <span className="max-w-0 opacity-0 group-hover:max-w-xs group-hover:opacity-100 group-hover:ml-1.5 transition-all duration-300 whitespace-nowrap">Удалить</span>
+              <span className="max-w-0 opacity-0 group-hover:max-w-xs group-hover:opacity-100 group-hover:ml-1.5 transition-all duration-300 whitespace-nowrap">
+                {t(language, "common.delete")}
+              </span>
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Удалить ключ «{key.name}»?</AlertDialogTitle>
+              <AlertDialogTitle>{t(language, "keys.deleteTitle", { name: key.name })}</AlertDialogTitle>
               <AlertDialogDescription>
-                Оба файла ключа будут удалены безвозвратно. Это действие нельзя отменить.
+                {t(language, "keys.deleteDesc")}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Отмена</AlertDialogCancel>
+              <AlertDialogCancel>{t(language, "common.cancel")}</AlertDialogCancel>
               <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                Удалить
+                {t(language, "common.delete")}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
         <Button size="sm" onClick={handleSave} disabled={saving}>
           <Save className="h-3.5 w-3.5 mr-1.5" />
-          {saving ? "Сохраняю..." : "Сохранить"}
+          {saving ? t(language, "common.saving") : t(language, "common.save")}
         </Button>
       </div>
     </div>

@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import { useServersStore } from "@/store/serversStore";
 import { useKeysStore } from "@/store/keysStore";
+import { useSettingsStore } from "@/store/settingsStore";
 import { saveServer } from "@/lib/tauri";
+import { t } from "@/lib/i18n";
 import { toast } from "sonner";
 import {
     Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
@@ -28,6 +30,7 @@ interface Props {
 export function ServerCreateModal({ open, onOpenChange }: Props) {
     const { loadServers, selectServer } = useServersStore();
     const { keys, loadKeys } = useKeysStore();
+    const language = useSettingsStore((s) => s.language);
     const [host, setHost] = useState("");
     const [hostname, setHostname] = useState("");
     const [user, setUser] = useState("root");
@@ -53,20 +56,20 @@ export function ServerCreateModal({ open, onOpenChange }: Props) {
             return;
         }
         const timer = setTimeout(() => {
-            toast.error("Хост с таким именем уже существует", { id: "duplicate-host-error" });
+            toast.error(t(language, "servers.duplicateHost"), { id: "duplicate-host-error" });
         }, 500);
         return () => clearTimeout(timer);
-    }, [host, isDuplicate]);
+    }, [host, isDuplicate, language]);
 
     const handleCreate = async () => {
         if (!host.trim()) {
-            toast.error("Укажите псевдоним хоста (Host)");
+            toast.error(t(language, "servers.noHostError"));
             return;
         }
 
         const { servers } = useServersStore.getState();
         if (servers.find(s => s.host === host.trim())) {
-            toast.error(`Хост «${host.trim()}» уже существует`);
+            toast.error(t(language, "servers.duplicateHost"));
             return;
         }
 
@@ -79,7 +82,7 @@ export function ServerCreateModal({ open, onOpenChange }: Props) {
                 port: port,
                 identity_file: identityFile
             });
-            toast.success(`Сервер «${host.trim()}» создан`);
+            toast.success(t(language, "servers.saved", { name: host.trim() }));
             await loadServers();
             selectServer(host.trim());
             onOpenChange(false);
@@ -89,7 +92,7 @@ export function ServerCreateModal({ open, onOpenChange }: Props) {
             setPort(22);
             setIdentityFile("");
         } catch (e) {
-            toast.error(`Ошибка создания: ${e}`);
+            toast.error(`${t(language, "common.error")}: ${e}`);
         } finally {
             setSaving(false);
         }
@@ -99,14 +102,14 @@ export function ServerCreateModal({ open, onOpenChange }: Props) {
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-md">
                 <DialogHeader>
-                    <DialogTitle>Новый сервер</DialogTitle>
-                    <DialogDescription>Добавление конфигурации в ~/.ssh/config</DialogDescription>
+                    <DialogTitle>{t(language, "servers.newServer")}</DialogTitle>
+                    <DialogDescription>{t(language, "servers.deleteDesc")}</DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-4 py-2">
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1.5">
-                            <Label>Host <span className="text-muted-foreground">(псевдоним)</span></Label>
+                            <Label>{t(language, "servers.hostLabel")} <span className="text-muted-foreground">{t(language, "servers.hostHint")}</span></Label>
                             <Input
                                 placeholder="my-server"
                                 value={host}
@@ -115,7 +118,7 @@ export function ServerCreateModal({ open, onOpenChange }: Props) {
                             />
                         </div>
                         <div className="space-y-1.5">
-                            <Label>HostName <span className="text-muted-foreground">(IP или домен)</span></Label>
+                            <Label>{t(language, "servers.hostnameLabel")} <span className="text-muted-foreground">{t(language, "servers.hostnameHint")}</span></Label>
                             <Input
                                 placeholder="192.168.1.1"
                                 value={hostname}
@@ -125,7 +128,7 @@ export function ServerCreateModal({ open, onOpenChange }: Props) {
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1.5">
-                            <Label>User</Label>
+                            <Label>{t(language, "servers.userLabel")}</Label>
                             <Input
                                 placeholder="root"
                                 value={user}
@@ -133,7 +136,7 @@ export function ServerCreateModal({ open, onOpenChange }: Props) {
                             />
                         </div>
                         <div className="space-y-1.5">
-                            <Label>Port</Label>
+                            <Label>{t(language, "servers.portLabel")}</Label>
                             <Input
                                 type="number"
                                 placeholder="22"
@@ -143,20 +146,20 @@ export function ServerCreateModal({ open, onOpenChange }: Props) {
                         </div>
                     </div>
                     <div className="space-y-1.5">
-                        <Label>IdentityFile <span className="text-muted-foreground">(SSH-ключ)</span></Label>
+                        <Label>{t(language, "servers.identityFileLabel")} <span className="text-muted-foreground">{t(language, "servers.hostHint")}</span></Label>
                         <div className="flex gap-2">
                             <Popover open={keyOpen} onOpenChange={setKeyOpen}>
                                 <PopoverTrigger asChild>
                                     <Button variant="outline" role="combobox" className="flex-1 justify-between font-normal">
-                                        <span className="truncate">{identityFile || "Выберите ключ..."}</span>
+                                        <span className="truncate">{identityFile || t(language, "servers.identityFilePrompt")}</span>
                                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                     </Button>
                                 </PopoverTrigger>
                                 <PopoverContent className="w-[300px] p-0">
                                     <Command>
-                                        <CommandInput placeholder="Поиск ключа..." />
+                                        <CommandInput placeholder={t(language, "common.search")} />
                                         <CommandList>
-                                            <CommandEmpty>Ключи не найдены</CommandEmpty>
+                                            <CommandEmpty>{t(language, "common.noResults")}</CommandEmpty>
                                             <CommandGroup>
                                                 {keys.map((k) => (
                                                     <CommandItem
@@ -182,16 +185,16 @@ export function ServerCreateModal({ open, onOpenChange }: Props) {
                                         <Plus className="h-4 w-4" />
                                     </Button>
                                 </TooltipTrigger>
-                                <TooltipContent>Создать новый ключ</TooltipContent>
+                                <TooltipContent>{t(language, "keys.generate")}</TooltipContent>
                             </Tooltip>
                         </div>
                     </div>
                 </div>
 
                 <DialogFooter>
-                    <Button variant="outline" onClick={() => onOpenChange(false)}>Отмена</Button>
+                    <Button variant="outline" onClick={() => onOpenChange(false)}>{t(language, "common.cancel")}</Button>
                     <Button onClick={handleCreate} disabled={saving || isDuplicate}>
-                        {saving ? "Создаю..." : "Создать"}
+                        {saving ? t(language, "common.saving") : t(language, "common.save")}
                     </Button>
                 </DialogFooter>
             </DialogContent>

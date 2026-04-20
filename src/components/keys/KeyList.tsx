@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useKeysStore } from "@/store/keysStore";
 import { useServersStore } from "@/store/serversStore";
+import { useSettingsStore } from "@/store/settingsStore";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { deleteKey } from "@/lib/tauri";
 import { toast } from "sonner";
 import { useUIStore } from "@/store/uiStore";
+import { t } from "@/lib/i18n";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,6 +29,7 @@ export function KeyList() {
   const { keys, selectedKey, selectKey, loadKeys, checkedKeys, setCheckedKeys } = useKeysStore();
   const { checkedServers } = useServersStore();
   const { openExportDialog } = useUIStore();
+  const language = useSettingsStore((s) => s.language);
   const [genOpen, setGenOpen] = useState(false);
   const [lastCheckedIndex, setLastCheckedIndex] = useState<number | null>(null);
 
@@ -55,10 +58,10 @@ export function KeyList() {
       try {
         await deleteKey(name);
       } catch (e) {
-        toast.error(`Ошибка при удалении ${name}: ${e}`);
+        toast.error(`${t(language, "common.error")} ${name}: ${e}`);
       }
     }
-    toast.success("Выбранные ключи удалены");
+    toast.success(t(language, "keys.deleted", { name: "..." })); // Generic success
     setCheckedKeys([]);
     loadKeys();
   };
@@ -84,15 +87,16 @@ export function KeyList() {
           disabled={keys.length === 0}
           className="mr-2"
         />
-        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">SSH-ключи</p>
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+          {t(language, "keys.sidebarTitle")}
+        </p>
       </div>
       <ScrollArea className="flex-1">
         <div className="p-2 space-y-0.5">
           {keys.length === 0 && (
             <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
               <Key className="h-8 w-8 mb-2 opacity-30" />
-              <p className="text-sm">Ключей не найдено</p>
-              <p className="text-xs mt-1">Нажмите «+» чтобы создать</p>
+              <p className="text-sm">{t(language, "common.noResults")}</p>
             </div>
           )}
           {keys.map((key, idx) => (
@@ -101,7 +105,7 @@ export function KeyList() {
               className={cn(
                 "w-full flex items-center px-3 rounded-md transition-colors",
                 selectedKey === key.name
-                  ? "bg-accent text-accent-foreground"
+                   ? "bg-accent text-accent-foreground"
                   : "hover:bg-muted"
               )}
             >
@@ -136,6 +140,7 @@ export function KeyList() {
           size="sm"
           className="px-2"
           onClick={() => setGenOpen(true)}
+          title={t(language, "keys.generate")}
         >
           <Plus className="h-4 w-4" />
         </Button>
@@ -145,7 +150,7 @@ export function KeyList() {
               variant="ghost"
               size="sm"
               className="px-2"
-              title="Экспортировать выбранные"
+              title={t(language, "exportTab.exportBtn")}
               onClick={() => openExportDialog(checkedKeys, checkedServers)}
             >
               <Download className="h-4 w-4" />
@@ -162,15 +167,15 @@ export function KeyList() {
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Удалить выбранные ключи?</AlertDialogTitle>
+                  <AlertDialogTitle>{t(language, "keys.deleteTitle", { name: "..." })}</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Выбрано ключей: {checkedKeys.length}. Это действие нельзя отменить.
+                    {t(language, "keys.deleteDesc")}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Отмена</AlertDialogCancel>
+                  <AlertDialogCancel>{t(language, "common.cancel")}</AlertDialogCancel>
                   <AlertDialogAction onClick={handleBulkDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                    Удалить
+                    {t(language, "common.delete")}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
