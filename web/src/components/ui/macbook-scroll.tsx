@@ -49,10 +49,10 @@ export const MacbookScroll = ({
     }
   }, []);
 
-  const scaleX = useTransform(scrollYProgress, [0, 0.3], [1, isMobile ? 1.2 : 1.5]);
-  const scaleY = useTransform(scrollYProgress, [0, 0.3], [0.8, isMobile ? 1.2 : 1.5]);
+  const scaleX = useTransform(scrollYProgress, [0, 0.3], [isMobile ? 1 : 1.1, isMobile ? 1.2 : 1.5]);
+  const scaleY = useTransform(scrollYProgress, [0, 0.3], [isMobile ? 1 : 1.1, isMobile ? 1.2 : 1.5]);
   const translate = useTransform(scrollYProgress, [0, 1], [0, isMobile ? 800 : 1500]);
-  const rotate = useTransform(scrollYProgress, [0.1, 0.12, 0.3], [-28, -28, 0]);
+  const rotate = useTransform(scrollYProgress, [0, 0.3], [-10, 0]);
   const textTransform = useTransform(scrollYProgress, [0, 0.3], [0, isMobile ? 50 : 100]);
   const textOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
 
@@ -156,15 +156,15 @@ export const Lid = ({
           transformStyle: "preserve-3d",
           transformOrigin: "top",
         }}
-        className="absolute inset-0 h-96 w-[32rem] rounded-2xl bg-[#010101] p-2 shadow-2xl"
+        className="absolute inset-0 h-[20.4rem] w-[32rem] rounded-2xl bg-[#010101] p-[6px] shadow-2xl"
       >
-        <div className="absolute inset-0 rounded-lg bg-[#272729]" />
+        <div className="absolute inset-0 rounded-lg bg-[#1a1a1b]" />
         <div className="relative h-full w-full rounded-lg overflow-hidden bg-black">
           {src && (
             <img
               src={src}
               alt="Macbook Content"
-              className="absolute inset-0 h-full w-full object-cover object-left-top"
+              className="absolute inset-0 h-full w-full object-cover object-center scale-[1.14]"
             />
           )}
         </div>
